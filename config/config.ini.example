@@ -1,0 +1,4 @@
+token:					##the token for you discord account
+my_server_ids:			##the id of your server
+webhook_url:			##url of your webhook
+ignore_ids:	 			##user ids of users you'd like to ignore [user_id1, user_id2, ... ]
