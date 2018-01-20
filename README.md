@@ -1,6 +1,6 @@
 # CounterSniper
 
-[![python](https://img.shields.io/badge/Python-3.6-blue.svg)]() [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://img.shields.io/gitlab/license/alphapokes/countersniper) [![pipeline status](https://gitlab.com/alphapokes/CounterSniper/badges/observe_and_report/pipeline.svg)](https://gitlab.com/alphapokes/observe_and_report/commits/master) [![Discord](https://img.shields.io/discord/314040044052545538.svg)](https://discordapp.com/channels/314040044052545538/314040595456983040) [![donate](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://paypal.me/dneal12)
+[![python](https://img.shields.io/badge/Python-3.6-blue.svg)]() [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://img.shields.io/gitlab/license/dan.r.neal/countersniper) [![pipeline status](https://gitlab.com/dan.r.neal/CounterSniper/badges/observe_and_report/pipeline.svg)](https://gitlab.com/dan.r.neal/observe_and_report/commits/master) [![Discord](https://img.shields.io/discord/314040044052545538.svg)](https://discordapp.com/channels/314040044052545538/314040595456983040) [![donate](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://paypal.me/dneal12)
 
 A counter-sniper discord bot.
 
@@ -51,7 +51,7 @@ This bot will monitor sniping servers and alert you if one of your users is curr
 
 **How to install:**
 
-1. `git clone git@gitlab.com:alphapokes/CounterSniper.git`
+1. `git clone git@gitlab.com:dan.r.neal/CounterSniper.git`
 2. `cd ./CounterSniper`
 3. `python3 -m pip install -r requirements.txt`
 
