@@ -447,7 +447,7 @@ async def on_message(message):
                 }
             }
             try_sending("Discord", send_webhook, webhook)
-            print('{} posted coords in Blacklisted Server'.format(
+            print('{} posted coords in Blacklisted Server.'.format(
                 str(message.author.display_name)))
     elif (args.monitor_users and
           len(args.admin_role) > 0 and
@@ -465,22 +465,40 @@ async def on_message(message):
                                 'description': ((
                                     '{} Not a valid user id.'
                                 ).format(message.author.mention)),
-                                'color': int('0xee281f', 16),
+                                'color': int('0xee281f', 16)
                             }]
                         }
                     }
                     try_sending("Discord", send_webhook, webhook)
                     print('{} sent an invalid user id.'.format(
                         message.author.display_name))
+                    break
                 member = discord.utils.get(
                     client.get_all_members(),
                     id=msg
                 )
-                if msg in snipers:
+                if member is None:
+                    webhook = {
+                        'url': args.webhook_url,
+                        'payload': {
+                            'embeds': [{
+                                'description': ((
+                                    '{} Cannot find user with id `{}`.'
+                                ).format(message.author.mention, str(msg))),
+                                'color': int('0xee281f', 16)
+                            }]
+                        }
+                    }
+                    try_sending("Discord", send_webhook, webhook)
+                    print('Cannot find user id {}.'.format(str(msg)))
+                elif msg in snipers:
                     if member.id in users:
                         descript = (member.mention + '\n\n**Servers**\n```')
                     else:
-                        descript = str(member) + ' | ' + str(member.id)
+                        descript = (
+                            str(member) + ' | ' + str(member.id) +
+                            '\n\n**Servers**\n```'
+                        )
                     for server in snipers[member.id]:
                         descript += server.name + '\n'
                     descript += '```\n' + str(datetime.time(
