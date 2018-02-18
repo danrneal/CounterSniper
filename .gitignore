@@ -1,4 +1,5 @@
 *.pyc
+*.txt
 config/*
 !config/config.ini.example
 null
