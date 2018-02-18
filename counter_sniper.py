@@ -224,10 +224,11 @@ async def on_ready():
     if client.user.id not in args.ignore_ids:
         args.ignore_ids.append(client.user.id)
     print((
+        '----------------------------------\n' +
         'Connected! Ready to counter-snipe.\n' +
         'Username: {}\n' +
         'ID: {}\n' +
-        '--Guild List--'
+        '------------Guild List------------'
     ).format(client.user.name, client.user.id))
     for guild in client.guilds:
         if ((args.monitor_users or args.monitor_user_messages) and
