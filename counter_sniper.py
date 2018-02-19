@@ -247,9 +247,9 @@ async def on_ready():
             for member in guild.members:
                 if member.id not in args.ignore_ids:
                     if member.id not in snipers:
-                        snipers[member.id] = [guild]
+                        snipers[member.id] = [guild.id]
                     elif guild not in snipers[member.id]:
-                        snipers[member.id].append(guild)
+                        snipers[member.id].append(guild.id)
         print(guild.name)
     if args.monitor_users:
         print(
@@ -316,7 +316,7 @@ async def on_ready():
                 with open('cache.json', 'w+') as f:
                     json.dump(cache, f, indent=4)
                 print('{} has left the building.'.format(
-                    str(member.display_name)))                
+                    str(member.display_name)))
             elif member_id not in snipers:
                 webhook = {
                     'url': args.webhook_url,
@@ -382,9 +382,9 @@ async def on_member_join(member):
                 str(member.display_name)))
     elif args.monitor_users and member.id not in args.ignore_ids:
         if member.id not in snipers:
-            snipers[member.id] = [member.guild]
-        elif member.guild not in snipers[member.id]:
-            snipers[member.id].append(member.guild)
+            snipers[member.id] = [member.guild.id]
+        elif member.guild.id not in snipers[member.id]:
+            snipers[member.id].append(member.guild.id)
         if member.id in users:
             descript = (
                 member.mention +
@@ -449,8 +449,8 @@ async def on_member_remove(member):
     elif args.monitor_users and member.id not in args.ignore_ids:
         if member.id in snipers and len(snipers[member.id]) <= 1:
             snipers.pop(member.id)
-        elif member.id in snipers and member.guild in snipers[member.id]:
-            snipers[member.id].remove(member.guild)
+        elif member.id in snipers and member.guild.id in snipers[member.id]:
+            snipers[member.id].remove(member.guild.id)
         if member.id in users:
             descript = (
                 member.mention +
