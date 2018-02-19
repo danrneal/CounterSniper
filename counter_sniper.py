@@ -37,7 +37,7 @@ def get_args():
     )
     parser.add_argument(
         '-sid', '--my_server_ids',
-        type=int,
+        type=str,
         action='append',
         default=[],
         help='List of your server IDs',
@@ -58,7 +58,7 @@ def get_args():
     )
     parser.add_argument(
         '-iid', '--ignore_ids',
-        type=int,
+        type=str,
         action='append',
         default=[],
         help='List of IDs for users you want the bot to ignore'
@@ -219,55 +219,61 @@ if args.monitor_messages or args.monitor_user_messages:
 if args.monitor_users:
     try:
         with open('cache.json') as f:
-            cache = list(map(int, json.load(f)))
+            cache = json.load(f)
     except Exception:
         cache = {}
 users = []
 snipers = {}
+guilds = {}
 
 
 @client.event
 async def on_ready():
-    if client.user.id not in args.ignore_ids:
-        args.ignore_ids.append(client.user.id)
+    if str(client.user.id) not in args.ignore_ids:
+        args.ignore_ids.append(str(client.user.id))
     print((
-        '----------------------------------\n' +
-        'Connected! Ready to counter-snipe.\n' +
-        'Username: {}\n' +
-        'ID: {}\n' +
+        '----------------------------------\n'
+        'Connected! Ready to counter-snipe.\n'
+        'Username: {}\n'
+        'ID: {}\n'
         '------------Guild List------------'
     ).format(client.user.name, client.user.id))
     for guild in client.guilds:
         if ((args.monitor_users or args.monitor_user_messages) and
-                guild.id in args.my_server_ids):
+                str(guild.id) in args.my_server_ids):
+            guilds[str(guild.id)] = guild.name
             for member in guild.members:
-                if member.id not in users:
-                    users.append(member.id)
+                if str(member.id) not in users:
+                    users.append(str(member.id))
         elif args.monitor_users:
+            guilds[str(guild.id)] = guild.name
             for member in guild.members:
-                if member.id not in args.ignore_ids:
-                    if member.id not in snipers:
-                        snipers[member.id] = [guild.id]
-                    elif guild not in snipers[member.id]:
-                        snipers[member.id].append(guild.id)
+                if str(member.id) not in args.ignore_ids:
+                    if str(member.id) not in snipers:
+                        snipers[str(member.id)] = [str(guild.id)]
+                    elif str(guild.id) not in snipers[str(member.id)]:
+                        snipers[str(member.id)].append(str(guild.id))
         print(guild.name)
     if args.monitor_users:
         print(
-            '---------------------------------------------\n' +
-            'Current list of users in blacklisted servers:\n' +
+            '---------------------------------------------\n'
+            'Current list of users in blacklisted servers:\n'
             '---------------------------------------------'
         )
         bastards = set(snipers).intersection(set(users))
         for member_id in bastards:
-            member = discord.utils.get(client.get_all_members(), id=member_id)
-            print('{} `{}`'.format(str(member.display_name), member.id))
+            member = discord.utils.get(
+                client.get_all_members(),
+                id=int(member_id)
+            )
+            print('{} `{}`'.format(member.display_name, member.id))
             if (member_id not in cache or
                     cache[member_id] != snipers[member_id]):
-                descript = (member.mention + '\n\n**Servers**\n```')
-                for server in snipers[member.id]:
-                    descript += server.name + '\n'
-                descript += '```\n' + str(datetime.time(datetime.now().replace(
-                    microsecond=0)))
+                descript = '{}\n\n**Servers**\n```'.format(member.mention)
+                for guild_id in snipers[member_id]:
+                    descript += '{}\n'.format(guilds[guild_id])
+                descript += '```\n{}'.format(
+                    datetime.time(datetime.now().replace(microsecond=0)))
                 webhook = {
                     'url': args.webhook_url,
                     'payload': {
@@ -290,16 +296,16 @@ async def on_ready():
             if member_id not in users:
                 member = discord.utils.get(
                     client.get_all_members(),
-                    id=member_id
+                    id=int(member_id)
                 )
                 if member is not None:
-                    descript = str(member) + '\n\n**Id**\n' + str(member.id)
+                    descript = '{}\n\n**Id**\n{}'.format(member, member.id)
                     thumbnail = {'url': member.avatar_url}
                 else:
-                    descript = '**Id**\n' + str(member_id)
+                    descript = '**Id**\n{}'.format(member_id)
                     thumbnail = None
-                descript += '\n\n' + str(datetime.time(datetime.now().replace(
-                    microsecond=0)))
+                descript += '\n\n{}'.format(
+                    datetime.time(datetime.now().replace(microsecond=0)))
                 webhook = {
                     'url': args.webhook_url,
                     'payload': {
@@ -312,11 +318,10 @@ async def on_ready():
                     }
                 }
                 try_sending("Discord", send_webhook, webhook)
-                cache.pop(member.id)
+                cache.pop(member_id)
                 with open('cache.json', 'w+') as f:
                     json.dump(cache, f, indent=4)
-                print('{} has left the building.'.format(
-                    str(member.display_name)))
+                print('{} has left the building.'.format(member.display_name))
             elif member_id not in snipers:
                 webhook = {
                     'url': args.webhook_url,
@@ -326,10 +331,10 @@ async def on_ready():
                                 u"\u2705" +
                                 ' User is in no Blacklisted Servers'
                             ),
-                            'description': (
-                                member.mention +
-                                '\n\n' + str(datetime.time(
-                                    datetime.now().replace(microsecond=0)))
+                            'description': '{}\n\n{}'.format(
+                                member.mention,
+                                datetime.time(datetime.now().replace(
+                                    microsecond=0))
                             ),
                             'color': int('0x71cd40', 16),
                             'thumbnail': {'url': member.avatar_url}
@@ -337,11 +342,11 @@ async def on_ready():
                     }
                 }
                 try_sending("Discord", send_webhook, webhook)
-                cache.pop(member.id)
+                cache.pop(member_id)
                 with open('cache.json', 'w+') as f:
                     json.dump(cache, f, indent=4)
                 print('{} is not in a blacklisted server.'.format(
-                    str(member.display_name)))
+                    member.display_name))
     print(
         '--------------------------\n'
         'Monitoring sniping servers\n'
@@ -352,15 +357,15 @@ async def on_ready():
 @client.event
 async def on_member_join(member):
     if ((args.monitor_users or args.monitor_user_messages) and
-            member.guild.id in args.my_server_ids):
-        if member.id not in users:
-            users.append(member.id)
-        if args.monitor_users and member.id in snipers:
-            descript = (member.mention + '\n\n**Servers**\n```')
-            for server in snipers[member.id]:
-                descript += server.name + '\n'
-            descript += '```\n' + str(datetime.time(datetime.now().replace(
-                microsecond=0)))
+            str(member.guild.id) in args.my_server_ids):
+        if str(member.id) not in users:
+            users.append(str(member.id))
+        if args.monitor_users and str(member.id) in snipers:
+            descript = '{}\n\n**Servers**\n```'.format(member.mention)
+            for guild_id in snipers[str(member.id)]:
+                descript += '{}\n'.format(guilds[guild_id])
+            descript += '```\n{}'.format(
+                datetime.time(datetime.now().replace(microsecond=0)))
             webhook = {
                 'url': args.webhook_url,
                 'payload': {
@@ -375,28 +380,25 @@ async def on_member_join(member):
                 }
             }
             try_sending("Discord", send_webhook, webhook)
-            cache[member.id] = snipers[member.id]
+            cache[str(member.id)] = snipers[str(member.id)]
             with open('cache.json', 'w+') as f:
                 json.dump(cache, f, indent=4)
-            print('{} is in a blacklisted server.'.format(
-                str(member.display_name)))
-    elif args.monitor_users and member.id not in args.ignore_ids:
-        if member.id not in snipers:
-            snipers[member.id] = [member.guild.id]
-        elif member.guild.id not in snipers[member.id]:
-            snipers[member.id].append(member.guild.id)
-        if member.id in users:
-            descript = (
-                member.mention +
-                '\n\n**Server Joined**\n' + member.guild.name + '\n'
-            )
-            if len(snipers[member.id]) > 1:
+            print('{} is in a blacklisted server.'.format(member.display_name))
+    elif args.monitor_users and str(member.id) not in args.ignore_ids:
+        if str(member.id) not in snipers:
+            snipers[str(member.id)] = [str(member.guild.id)]
+        elif str(member.guild.id) not in snipers[str(member.id)]:
+            snipers[str(member.id)].append(str(member.guild.id))
+        if str(member.id) in users:
+            descript = '{}\n\n**Server Joined**\n{}\n'.format(
+                member.mention, member.guild.name)
+            if len(snipers[str(member.id)]) > 1:
                 descript += '\n**All Servers**\n```'
-                for server in snipers[member.id]:
-                    descript += server.name + '\n'
+                for guild_id in snipers[str(member.id)]:
+                    descript += '{}\n'.format(guilds[guild_id])
                 descript += '```'
-            descript += '\n' + str(datetime.time(datetime.now().replace(
-                microsecond=0)))
+            descript += '\n{}'.format(
+                datetime.time(datetime.now().replace(microsecond=0)))
             webhook = {
                 'url': args.webhook_url,
                 'payload': {
@@ -411,30 +413,29 @@ async def on_member_join(member):
                 }
             }
             try_sending("Discord", send_webhook, webhook)
-            cache[member.id] = snipers[member.id]
+            cache[str(member.id)] = snipers[str(member.id)]
             with open('cache.json', 'w+') as f:
                 json.dump(cache, f, indent=4)
             print('{} joined {}.'.format(
-                str(member.display_name), str(member.guild.name)))
+                member.display_name, member.guild.name))
 
 
 @client.event
 async def on_member_remove(member):
     if ((args.monitor_users or args.monitor_user_messages) and
-            member.guild.id in args.my_server_ids):
-        if member.id in users:
-            users.remove(member.id)
-        if args.monitor_users and member.id in snipers:
+            str(member.guild.id) in args.my_server_ids):
+        if str(member.id) in users:
+            users.remove(str(member.id))
+        if args.monitor_users and str(member.id) in snipers:
             webhook = {
                 'url': args.webhook_url,
                 'payload': {
                     'embeds': [{
                         'title': u"\uE333" + ' User left the building',
-                        'description': (
-                            str(member) +
-                            '\n\n**Id**\n' + str(member.id) +
-                            '\n\n' + str(datetime.time(datetime.now().replace(
-                                microsecond=0)))
+                        'description': '{}\n\n**Id**\n{}\n\n{}'.format(
+                            member, member.id,
+                            datetime.time(datetime.now().replace(
+                                microsecond=0))
                         ),
                         'color': int('0xee281f', 16),
                         'thumbnail': {'url': member.avatar_url}
@@ -442,27 +443,26 @@ async def on_member_remove(member):
                 }
             }
             try_sending("Discord", send_webhook, webhook)
-            cache.pop(member.id)
+            cache.pop(str(member.id))
             with open('cache.json', 'w+') as f:
                 json.dump(cache, f, indent=4)
-            print('{} has left the building.'.format(str(member.display_name)))
-    elif args.monitor_users and member.id not in args.ignore_ids:
-        if member.id in snipers and len(snipers[member.id]) <= 1:
-            snipers.pop(member.id)
-        elif member.id in snipers and member.guild.id in snipers[member.id]:
-            snipers[member.id].remove(member.guild.id)
-        if member.id in users:
-            descript = (
-                member.mention +
-                '\n\n**Server left**\n' + member.guild.name + '\n'
-            )
-            if member.id in snipers:
+            print('{} has left the building.'.format(member.display_name))
+    elif args.monitor_users and str(member.id) not in args.ignore_ids:
+        if str(member.id) in snipers and len(snipers[str(member.id)]) <= 1:
+            snipers.pop(str(member.id))
+        elif (str(member.id) in snipers and
+              str(member.guild.id) in snipers[str(member.id)]):
+            snipers[str(member.id)].remove(str(member.guild.id))
+        if str(member.id) in users:
+            descript = '{}\n\n**Server left**\n{}\n'.format(
+                member.mention, member.guild.name)
+            if str(member.id) in snipers:
                 descript += '\n**All Servers**\n```'
-                for server in snipers[member.id]:
-                    descript += server.name + '\n'
+                for guild_id in snipers[str(member.id)]:
+                    descript += '{}\n'.format(guilds[guild_id])
                 descript += '```'
-            descript += '\n' + str(datetime.time(datetime.now().replace(
-                microsecond=0)))
+            descript += '\n{}'.format(
+                datetime.time(datetime.now().replace(microsecond=0)))
             webhook = {
                 'url': args.webhook_url,
                 'payload': {
@@ -477,23 +477,22 @@ async def on_member_remove(member):
                 }
             }
             try_sending("Discord", send_webhook, webhook)
-            if member.id in snipers:
-                cache[member.id] = snipers[member.id]
+            if str(member.id) in snipers:
+                cache[str(member.id)] = snipers[str(member.id)]
             else:
-                cache.pop(member.id)
+                cache.pop(str(member.id))
             with open('cache.json', 'w+') as f:
                 json.dump(cache, f, indent=4)
-            print('{} left {}.'.format(
-                str(member.display_name), str(member.guild.name)))
+            print('{} left {}.'.format(member.display_name, member.guild.name))
 
 
 @client.event
 async def on_message(message):
     if ((args.monitor_messages or
          (args.monitor_user_messages and
-          message.author.id in users)) and
+          str(message.author.id) in users)) and
         message.channel.guild is not None and
-            message.guild.id not in args.my_server_ids):
+            str(message.guild.id) not in args.my_server_ids):
         alert = False
         msg = message.content.replace(', ', ',').split()
         for word in msg:
@@ -516,14 +515,12 @@ async def on_message(message):
                         print(coords)
                         print('!!!!!!!!!!!!!!!!!!!!!!!!!!')
         if alert is True:
-            if message.author.id in users:
+            if str(message.author.id) in users:
                 descript = message.author.mention
             else:
-                descript = str(message.author) + ' | ' + str(message.author.id)
-            descript += (
-                '\n\n**Server**\n' + message.guild.name +
-                '\n\n**Message**\n```' + message.content + '```'
-            )
+                descript = '{} | {}'.format(message.author, message.author.id)
+            descript += '\n\n**Server**\n{}\n\n**Message**\n```{}```'.format(
+                message.guild.name, message.content)
             webhook = {
                 'url': args.webhook_url,
                 'payload': {
@@ -540,10 +537,10 @@ async def on_message(message):
             }
             try_sending("Discord", send_webhook, webhook)
             print('{} posted coords in Blacklisted Server.'.format(
-                str(message.author.display_name)))
+                message.author.display_name))
     elif (args.monitor_users and
           len(args.admin_role) > 0 and
-          message.guild.id in args.my_server_ids and
+          str(message.guild.id) in args.my_server_ids and
           message.content.lower().startswith('!check ')):
         for role in message.author.roles:
             if role.name.lower() in args.admin_role:
@@ -554,9 +551,9 @@ async def on_message(message):
                         'url': args.webhook_url,
                         'payload': {
                             'embeds': [{
-                                'description': ((
+                                'description': (
                                     '{} Not a valid user id.'
-                                ).format(message.author.mention)),
+                                ).format(message.author.mention),
                                 'color': int('0xee281f', 16)
                             }]
                         }
@@ -574,27 +571,26 @@ async def on_message(message):
                         'url': args.webhook_url,
                         'payload': {
                             'embeds': [{
-                                'description': ((
+                                'description': (
                                     '{} Cannot find user with id `{}`.'
-                                ).format(message.author.mention, str(msg))),
+                                ).format(message.author.mention, msg),
                                 'color': int('0xee281f', 16)
                             }]
                         }
                     }
                     try_sending("Discord", send_webhook, webhook)
-                    print('Cannot find user id {}.'.format(str(msg)))
+                    print('Cannot find user id {}.'.format(msg))
                 elif msg in snipers:
-                    if member.id in users:
-                        descript = (member.mention + '\n\n**Servers**\n```')
+                    if str(member.id) in users:
+                        descript = '{}\n\n**Servers**\n```'.format(
+                            member.mention)
                     else:
-                        descript = (
-                            str(member) + ' | ' + str(member.id) +
-                            '\n\n**Servers**\n```'
-                        )
-                    for server in snipers[member.id]:
-                        descript += server.name + '\n'
-                    descript += '```\n' + str(datetime.time(
-                        datetime.now().replace(microsecond=0)))
+                        descript = '{} | {}\n\n**Servers**\n```'.format(
+                            member, member.id)
+                    for guild_id in snipers[str(member.id)]:
+                        descript += '{}\n'.format(guilds[guild_id])
+                    descript += '```\n{}'.format(
+                        datetime.time(datetime.now().replace(microsecond=0)))
                     webhook = {
                         'url': args.webhook_url,
                         'payload': {
@@ -611,18 +607,14 @@ async def on_message(message):
                     }
                     try_sending("Discord", send_webhook, webhook)
                     print('{} is in a blacklisted server.'.format(
-                        str(member.display_name)))
+                        member.display_name))
                 else:
-                    if member.id in users:
+                    if str(member.id) in users:
                         descript = member.mention
                     else:
-                        descript = (
-                            str(member) + '\n\n**Id**\n' + str(member.id)
-                        )
-                    descript += (
-                        '\n\n' + str(datetime.time(datetime.now().replace(
-                            microsecond=0)))
-                    )
+                        descript = '{}\n\n**Id**\n{}'.format(member, member.id)
+                    descript += '\n\n{}'.format(
+                        datetime.time(datetime.now().replace(microsecond=0)))
                     webhook = {
                         'url': args.webhook_url,
                         'payload': {
@@ -639,7 +631,7 @@ async def on_message(message):
                     }
                     try_sending("Discord", send_webhook, webhook)
                     print('{} is not in a blacklisted server.'.format(
-                        str(member.display_name)))
+                        member.display_name))
 
 
 def counter_sniper():
