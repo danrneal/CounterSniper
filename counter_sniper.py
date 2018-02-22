@@ -310,7 +310,7 @@ async def on_ready():
                     'url': args.webhook_url,
                     'payload': {
                         'embeds': [{
-                            'title': u"\uE333" + ' User left the building',
+                            'title': u"\u274C" + ' User left the building',
                             'description': descript,
                             'color': int('0xee281f', 16),
                             'thumbnail': thumbnail
@@ -431,7 +431,7 @@ async def on_member_remove(member):
                 'url': args.webhook_url,
                 'payload': {
                     'embeds': [{
-                        'title': u"\uE333" + ' User left the building',
+                        'title': u"\u274C" + ' User left the building',
                         'description': '{}\n\n**Id**\n{}\n\n{}'.format(
                             member, member.id,
                             datetime.time(datetime.now().replace(
@@ -494,7 +494,7 @@ async def on_message(message):
         message.channel.guild is not None and
             str(message.guild.id) not in args.my_server_ids):
         alert = False
-        msg = message.content.replace(', ', ',').split()
+        msg = message.content.replace(', ', ',').replace('- ','-').split()
         for word in msg:
             coor_patter = re.compile(
                 "[-+]?[0-9]*\.?[0-9]*" + "[ \t]*,[ \t]*" +
