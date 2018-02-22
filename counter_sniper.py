@@ -494,7 +494,7 @@ async def on_message(message):
         message.channel.guild is not None and
             str(message.guild.id) not in args.my_server_ids):
         alert = False
-        msg = message.content.replace(', ', ',').replace('- ','-').split()
+        msg = message.content.replace(', ', ',').replace('- ', '-').split()
         for word in msg:
             coor_patter = re.compile(
                 "[-+]?[0-9]*\.?[0-9]*" + "[ \t]*,[ \t]*" +
