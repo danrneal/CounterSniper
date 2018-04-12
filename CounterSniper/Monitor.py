@@ -13,13 +13,14 @@ users = []
 
 class Spy(discord.Client):
 
-    def __init__(self, my_server_ids, webhook_url, ignore_ids, monitor_users,
-                 monitor_messages, monitor_user_messages, invite_listener,
-                 punishment, timer, geofences, queue):
+    def __init__(self, my_server_ids, webhook_url, ignore_ids, admin_roles,
+                 monitor_users, monitor_messages, monitor_user_messages,
+                 invite_listener, punishment, timer, geofences, queue):
         super(Spy, self).__init__()
         self.__my_server_ids = my_server_ids
         self.__webhook_url = webhook_url
         self.__ignore_ids = ignore_ids
+        self.__admin_roles = admin_roles
         self.__monitor_users = monitor_users
         self.__monitor_messages = monitor_messages
         self.__monitor_user_messages = monitor_user_messages
@@ -47,6 +48,10 @@ class Spy(discord.Client):
             guilds[str(guild.id)] = str(guild)
             if ((self.__monitor_users or self.__monitor_user_messages) and
                     str(guild.id) in self.__my_server_ids):
+                for role in guild.roles:
+                    if role.name.lower() in self.__admin_roles:
+                        self.__admin_roles.remove(role.name.lower())
+                        self.__admin_roles.append(role)
                 for member in guild.members:
                     if str(member.id) not in users:
                         users.append(str(member.id))
@@ -679,3 +684,109 @@ class Spy(discord.Client):
                         'event': 'invite'
                     }
                     await self.__queue.put(payload)
+        elif (self.__monitor_users and
+                len(self.__admin_roles) > 0 and
+                message.guild is not None and
+                str(message.guild.id) in self.__my_server_ids and
+                message.content.lower().startswith('!check ') and
+                not set(self.__admin_roles).isdisjoint(message.author.roles)):
+            if len(message.mentions) == 1:
+                member = message.mentions[0]
+                member_id = member.id
+            else:
+                try:
+                    member_id = int(message.content.lower().split()[1])
+                    member = discord.utils.get(
+                        self.get_all_members(),
+                        id=member_id
+                    )
+                except (ValueError, IndexError):
+                    webhook = {
+                        'url': self.__webhook_url,
+                        'payload': {
+                            'embeds': [{
+                                'description': (
+                                    '{} Not a valid user id.'
+                                ).format(message.author.mention),
+                                'color': int('0xee281f', 16),
+                            }]
+                        }
+                    }
+                    try_sending("Discord", send_webhook, webhook)
+                    log.info('{} sent an invalid user id.'.format(
+                        message.author))
+                    return
+            con = sqlite3.connect('counter_sniper.db')
+            cur = con.cursor()
+            cur.execute(
+                'SELECT guild_id, guild '
+                'FROM snipers '
+                'WHERE member_id = ?',
+                (str(member_id),)
+            )
+            sniper_guilds = cur.fetchall()
+            con.close()
+            if member is None and len(sniper_guilds) == 0:
+                webhook = {
+                    'url': self.__webhook_url,
+                    'payload': {
+                        'embeds': [{
+                            'description': (
+                                '{} Cannot find user with id `{}`.'
+                            ).format(message.author.mention, member_id),
+                            'color': int('0xee281f', 16),
+                        }]
+                    }
+                }
+                try_sending("Discord", send_webhook, webhook)
+                log.info('Cannot find user id {}.'.format(member_id))
+            elif len(sniper_guilds) > 0:
+                descript = '{} | {}'.format(member, member_id)
+                member_avatar_url = None
+                if member is not None:
+                    descript += '\n{}'.format(member.mention)
+                    member_avatar_url = member.avatar_url
+                descript += '\n\n**Servers**\n```\n'
+                for guild_info in sniper_guilds:
+                    descript += '{}\n'.format(guild_info[1])
+                descript += '```\n{}'.format(
+                    datetime.time(datetime.now().replace(microsecond=0)))
+                webhook = {
+                    'url': self.__webhook_url,
+                    'payload': {
+                        'embeds': [{
+                            'title': (
+                                u"\U0001F3F4" +
+                                ' User is in Blacklisted Server'
+                            ),
+                            'description': descript,
+                            'color': int('0xee281f', 16),
+                            'thumbnail': {'url': member_avatar_url}
+                        }]
+                    }
+                }
+                if member_avatar_url is None:
+                    webhook['payload']['embeds'][0].pop('thumbnail')
+                try_sending("Discord", send_webhook, webhook)
+                log.info('{} is in a blacklisted server.'.format(member))
+            else:
+                webhook = {
+                    'url': self.__webhook_url,
+                    'payload': {
+                        'embeds': [{
+                            'title': (
+                                u"\u2705" +
+                                ' User is in no Blacklisted Servers'
+                            ),
+                            'description': '{}\n{}\n\n**Id**\n{}\n\n{}'.format(
+                                member, member.mention, member.id,
+                                datetime.time(datetime.now().replace(
+                                    microsecond=0))
+                            ),
+                            'color': int('0x71cd40', 16),
+                            'thumbnail': {'url': member.avatar_url}
+                        }]
+                    }
+                }
+                try_sending("Discord", send_webhook, webhook)
+                log.info('{} is not in a blacklisted server.'.format(member))

@@ -197,7 +197,6 @@ def parse_settings(con, cur):
             my_server_ids=args.my_server_ids,
             message_users=args.message_users,
             monitor_users=args.monitor_users,
-            admin_roles=args.admin_roles,
             punishment=args.punishment,
             webhook_url=args.webhook_url,
             queue=queue
@@ -211,6 +210,7 @@ def parse_settings(con, cur):
         my_server_ids=args.my_server_ids,
         webhook_url=args.webhook_url,
         ignore_ids=args.ignore_ids,
+        admin_roles=args.admin_roles,
         monitor_users=args.monitor_users,
         monitor_messages=args.monitor_messages,
         monitor_user_messages=args.monitor_user_messages,
