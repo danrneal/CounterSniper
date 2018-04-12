@@ -1,39 +1,75 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import configargparse
 import asyncio
-import discord
-import requests
-import time
+import configargparse
+import logging.handlers
 import os
 import re
+import sqlite3
 import sys
-import json
-from collections import OrderedDict
-from datetime import datetime
+from collections import namedtuple, OrderedDict
+from CounterSniper.Hammer import Hammer
+from CounterSniper.Monitor import Spy
+from CounterSniper.utils import get_path, LoggerWriter
+
+filehandler = logging.handlers.TimedRotatingFileHandler(
+    'counter_sniper.log',
+    when='midnight',
+    backupCount=2,
+    encoding='utf-8'
+)
+consolehandler = logging.StreamHandler()
+logging.basicConfig(
+    format=(
+        '%(asctime)s [%(processName)15.15s][%(name)10.10s][%(levelname)8.8s] '
+        '%(message)s'
+    ),
+    level=logging.INFO,
+    handlers=[filehandler, consolehandler]
+)
+
+log = logging.getLogger('Server')
+sys.stdout = LoggerWriter(log.info)
+sys.stderr = LoggerWriter(log.warning)
+
+entries = []
 
 
-def get_path(path):
-    if not os.path.isabs(path):
-        path = os.path.join(os.path.dirname(__file__), path)
-    return path
+def start_server():
+    logging.getLogger("discord").setLevel(logging.WARNING)
+    con = sqlite3.connect('counter_sniper.db')
+    cur = con.cursor()
+    cur.execute(
+        'CREATE TABLE IF NOT EXISTS guilds(guild_id TEXT, guild TEXT, '
+        'UNIQUE(guild_id) ON CONFLICT IGNORE)'
+    )
+    parse_settings(con, cur)
 
 
-def get_args():
-    if '-cf' not in sys.argv and '--config' not in sys.argv:
-        config_files = [get_path('./config/config.ini')]
+def parse_settings(con, cur):
+    loop = asyncio.get_event_loop()
+    Entry = namedtuple('Entry', 'client event')
+    config_files = [
+        os.path.join(os.path.dirname(__file__), 'config/config.ini')
+    ]
+    if '-cf' in sys.argv or '--config' in sys.argv:
+        config_files = []
     parser = configargparse.ArgParser(default_config_files=config_files)
     parser.add_argument(
         '-cf', '--config',
-        is_config_file=True,
         help='Configuration file'
     )
     parser.add_argument(
-        '-token', '--bot_token',
+        '-st', '--spy_token',
         type=str,
-        help='Token for your account',
+        help='Token for your spy account',
         required=True
+    )
+    parser.add_argument(
+        '-ht', '--hammer_token',
+        type=str,
+        help='Token for your hammer bot (optional)'
     )
     parser.add_argument(
         '-sid', '--my_server_ids',
@@ -50,7 +86,7 @@ def get_args():
         required=True
     )
     parser.add_argument(
-        '-ar', '--admin_role',
+        '-ar', '--admin_roles',
         type=str.lower,
         action='append',
         default=[],
@@ -68,7 +104,7 @@ def get_args():
         action='store_false',
         default=True,
         help=(
-            "Set to False if you don't want to be alerted if a user joins " +
+            "Set to False if you don't want to be alerted if a user joins " 
             "a blacklisted server. default: True"
         )
     )
@@ -77,58 +113,123 @@ def get_args():
         action='store_false',
         default=True,
         help=(
-            "Set to False if you don't want to be alerted of messages " +
+            "Set to False if you don't want to be alerted of messages " 
             "containing coords from your geofences. default: True"
         )
     )
     parser.add_argument(
-        '-mum', '--monitor_user_message',
+        '-mum', '--monitor_user_messages',
         action='store_true',
         default=False,
         help=(
-            "Set to True if you only want to be alerted of messages " +
-            "containing coords in your geofences posted only by your users." +
+            "Set to True if you only want to be alerted of messages " 
+            "containing coords in your geofences posted only by your users." 
             "default: False"
+        )
+    )
+    parser.add_argument(
+        '-il', '--invite_listener',
+        action='store_false',
+        default=True,
+        help=(
+            "Set to False if you do not want to listen for invites for new "
+            "sniping servers. Invite listening requires a hammer token. "
+            "default: True"
+        )
+    )
+    parser.add_argument(
+        '-msg', '--message_users',
+        action='store_true',
+        default=False,
+        help=(
+            "Set to True to send a message to users when they have joined a "
+            "blacklisted server. Requires a hammer token. default: False"
+        )
+    )
+    parser.add_argument(
+        '-punish', '--punishment',
+        type=str.lower,
+        default=None,
+        choices=[None, 'ban', 'kick'],
+        help=(
+            "Choose a punishment for joining a blacklisted server.  Options "
+            "are 'ban' or 'kick'. Requires a hammer token. default: None"
+        )
+    )
+    parser.add_argument(
+        '-timer', '--timer',
+        type=int,
+        default=900,
+        help=(
+            "Amount of time before punishment happens in seconds. default: 900"
         )
     )
     parser.add_argument(
         '-gf', '--geofences',
         type=str,
         action='append',
-        default='geofence.txt',
+        default='../geofence.txt',
         help='File containing geofences. default: geofence.txt'
     )
-
     args = parser.parse_args()
-
-    return args
-
-
-def send_webhook(url, payload):
-    resp = requests.post(url, json=payload, timeout=5)
-    if resp.ok is True:
-        time.sleep(0.25)
+    if args.monitor_messages or args.monitor_user_messages:
+        geofences = load_geofence_file(get_path(args.geofences))
     else:
-        print("Discord response was {}".format(resp.content))
-        raise requests.exceptions.RequestException(
-            "Response received {}, webhook not accepted.".format(
-                resp.status_code))
-
-
-def try_sending(name, send_alert, args, max_attempts=3):
-    for i in range(max_attempts):
-        try:
-            send_alert(**args)
-            return
-        except Exception as e:
-            print((
-                "Encountered error while sending notification ({}: {})"
-            ).format(type(e).__name__, e))
-            print((
-                "{} is having connection issues. {} attempt of {}."
-            ).format(name, i+1, max_attempts))
-            time.sleep(5)
-    print("Could not send notification... Giving up.")
+        geofences = None
+    queue = asyncio.Queue()
+    if args.monitor_users:
+        cur.execute('DROP TABLE IF EXISTS snipers')
+        cur.execute(
+            'CREATE TABLE snipers(member_id TEXT, member TEXT, guild_id TEXT, '
+            'guild TEXT, UNIQUE(member_id, guild_id) ON CONFLICT IGNORE)'
+        )
+        cur.execute(
+            'CREATE TABLE IF NOT EXISTS cache(member_id TEXT, member TEXT, '
+            'guild_id TEXT, guild TEXT, timer TIMESTAMP, '
+            'UNIQUE(member_id, guild_id) ON CONFLICT IGNORE)'
+        )
+    con.commit()
+    con.close()
+    if (args.invite_listener or
+            args.message_users or
+            args.punishment is not None):
+        h = Hammer(
+            my_server_ids=args.my_server_ids,
+            message_users=args.message_users,
+            monitor_users=args.monitor_users,
+            admin_roles=args.admin_roles,
+            punishment=args.punishment,
+            webhook_url=args.webhook_url,
+            queue=queue
+        )
+        log.info('Starting the Hammer bot')
+        entries.append(Entry(client=h, event=asyncio.Event()))
+        loop.run_until_complete(h.login(args.hammer_token))
+        loop.create_task(h.connect())
+        loop.create_task(h.webhook())
+    s = Spy(
+        my_server_ids=args.my_server_ids,
+        webhook_url=args.webhook_url,
+        ignore_ids=args.ignore_ids,
+        monitor_users=args.monitor_users,
+        monitor_messages=args.monitor_messages,
+        monitor_user_messages=args.monitor_user_messages,
+        invite_listener=args.invite_listener,
+        punishment=args.punishment,
+        timer=args.timer,
+        geofences=geofences,
+        queue=queue
+    )
+    log.info('Starting the Spy bot')
+    entries.append(Entry(client=s, event=asyncio.Event()))
+    loop.run_until_complete(s.login(args.spy_token, bot=False))
+    loop.create_task(s.connect())
+    try:
+        loop.run_until_complete(check_close(entries))
+    except KeyboardInterrupt:
+        loop.close()
+    except Exception:
+        raise Exception
 
 
 def load_geofence_file(file_path):
@@ -147,28 +248,28 @@ def load_geofence_file(file_path):
             if match_name:
                 if len(points) > 0:
                     geofences[name] = Geofence(name, points)
-                    print("Geofence {} added.".format(name))
+                    log.info("Geofence {} added.".format(name))
                     points = []
                 name = match_name.group(0)
             elif coor_patter.match(line):
                 lat, lng = map(float, line.split(","))
                 points.append([lat, lng])
             else:
-                print((
+                log.info((
                     "Geofence was unable to parse this line: {}"
                 ).format(line))
-                print("All lines should be either '[name]' or 'lat,lng'.")
+                log.info("All lines should be either '[name]' or 'lat,lng'.")
                 sys.exit(1)
         geofences[name] = Geofence(name, points)
-        print("Geofence {} added!".format(name))
+        log.info("Geofence {} added!".format(name))
         return geofences
-    except IOError as e:
-        print((
-            "IOError: Please make sure a file with read/write permissions " +
+    except IOError:
+        log.info((
+            "IOError: Please make sure a file with read/write permissions "
             "exist at {}"
         ).format(file_path))
     except Exception as e:
-        print((
+        log.info((
             "Encountered error while loading Geofence: {}: {}"
         ).format(type(e).__name__, e))
     sys.exit(1)
@@ -203,7 +304,9 @@ class Geofence(object):
             if min(p1y, p2y) < y <= max(p1y, p2y) and x <= max(p1x, p2x):
                 if p1y != p2y:
                     xinters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
-                if p1x == p2x or x <= xinters:
+                    if x <= xinters:
+                        inside = not inside
+                else:
                     inside = not inside
             p1x, p1y = p2x, p2y
         return inside
@@ -212,435 +315,14 @@ class Geofence(object):
         return self.__name
 
 
-client = discord.Client()
-args = get_args()
-if args.monitor_messages or args.monitor_user_messages:
-    geofences = load_geofence_file(get_path(args.geofences))
-if args.monitor_users:
-    try:
-        with open('cache.json') as f:
-            cache = json.load(f)
-    except Exception:
-        cache = {}
-users = []
-snipers = {}
-guilds = {}
+async def check_close(entry_list):
+    futures = [entry.event.wait() for entry in entry_list]
+    await asyncio.wait(futures)
 
-
-@client.event
-async def on_ready():
-    if str(client.user.id) not in args.ignore_ids:
-        args.ignore_ids.append(str(client.user.id))
-    print((
-        '----------------------------------\n'
-        'Connected! Ready to counter-snipe.\n'
-        'Username: {}\n'
-        'ID: {}\n'
-        '------------Guild List------------'
-    ).format(client.user.name, client.user.id))
-    for guild in client.guilds:
-        if ((args.monitor_users or args.monitor_user_messages) and
-                str(guild.id) in args.my_server_ids):
-            guilds[str(guild.id)] = guild.name
-            for member in guild.members:
-                if str(member.id) not in users:
-                    users.append(str(member.id))
-        elif args.monitor_users:
-            guilds[str(guild.id)] = guild.name
-            for member in guild.members:
-                if str(member.id) not in args.ignore_ids:
-                    if str(member.id) not in snipers:
-                        snipers[str(member.id)] = [str(guild.id)]
-                    elif str(guild.id) not in snipers[str(member.id)]:
-                        snipers[str(member.id)].append(str(guild.id))
-        print(guild.name)
-    if args.monitor_users:
-        print(
-            '---------------------------------------------\n'
-            'Current list of users in blacklisted servers:\n'
-            '---------------------------------------------'
-        )
-        bastards = set(snipers).intersection(set(users))
-        for member_id in bastards:
-            member = discord.utils.get(
-                client.get_all_members(),
-                id=int(member_id)
-            )
-            print('{} `{}`'.format(member.display_name, member.id))
-            if (member_id not in cache or
-                    cache[member_id] != snipers[member_id]):
-                descript = '{}\n\n**Servers**\n```'.format(member.mention)
-                for guild_id in snipers[member_id]:
-                    descript += '{}\n'.format(guilds[guild_id])
-                descript += '```\n{}'.format(
-                    datetime.time(datetime.now().replace(microsecond=0)))
-                webhook = {
-                    'url': args.webhook_url,
-                    'payload': {
-                        'embeds': [{
-                            'title': (
-                                u"\U0001F3F4" + ' User is in Blacklisted ' +
-                                'Server'
-                            ),
-                            'description': descript,
-                            'color': int('0xee281f', 16),
-                            'thumbnail': {'url': member.avatar_url}
-                        }]
-                    }
-                }
-                try_sending("Discord", send_webhook, webhook)
-                cache[member_id] = snipers[member_id]
-                with open('cache.json', 'w+') as f:
-                    json.dump(cache, f, indent=4)
-        for member_id in cache:
-            if member_id not in users:
-                member = discord.utils.get(
-                    client.get_all_members(),
-                    id=int(member_id)
-                )
-                if member is not None:
-                    descript = '{}\n\n**Id**\n{}'.format(member, member.id)
-                    thumbnail = {'url': member.avatar_url}
-                else:
-                    descript = '**Id**\n{}'.format(member_id)
-                    thumbnail = None
-                descript += '\n\n{}'.format(
-                    datetime.time(datetime.now().replace(microsecond=0)))
-                webhook = {
-                    'url': args.webhook_url,
-                    'payload': {
-                        'embeds': [{
-                            'title': u"\u274C" + ' User left the building',
-                            'description': descript,
-                            'color': int('0xee281f', 16),
-                            'thumbnail': thumbnail
-                        }]
-                    }
-                }
-                try_sending("Discord", send_webhook, webhook)
-                cache.pop(member_id)
-                with open('cache.json', 'w+') as f:
-                    json.dump(cache, f, indent=4)
-                print('{} has left the building.'.format(member.display_name))
-            elif member_id not in snipers:
-                webhook = {
-                    'url': args.webhook_url,
-                    'payload': {
-                        'embeds': [{
-                            'title': (
-                                u"\u2705" +
-                                ' User is in no Blacklisted Servers'
-                            ),
-                            'description': '{}\n\n{}'.format(
-                                member.mention,
-                                datetime.time(datetime.now().replace(
-                                    microsecond=0))
-                            ),
-                            'color': int('0x71cd40', 16),
-                            'thumbnail': {'url': member.avatar_url}
-                        }]
-                    }
-                }
-                try_sending("Discord", send_webhook, webhook)
-                cache.pop(member_id)
-                with open('cache.json', 'w+') as f:
-                    json.dump(cache, f, indent=4)
-                print('{} is not in a blacklisted server.'.format(
-                    member.display_name))
-    print(
-        '--------------------------\n'
-        'Monitoring sniping servers\n'
-        '--------------------------'
-    )
-
-
-@client.event
-async def on_member_join(member):
-    if ((args.monitor_users or args.monitor_user_messages) and
-            str(member.guild.id) in args.my_server_ids):
-        if str(member.id) not in users:
-            users.append(str(member.id))
-        if args.monitor_users and str(member.id) in snipers:
-            descript = '{}\n\n**Servers**\n```'.format(member.mention)
-            for guild_id in snipers[str(member.id)]:
-                descript += '{}\n'.format(guilds[guild_id])
-            descript += '```\n{}'.format(
-                datetime.time(datetime.now().replace(microsecond=0)))
-            webhook = {
-                'url': args.webhook_url,
-                'payload': {
-                    'embeds': [{
-                        'title': (
-                            u"\U0001F3F4" + ' User is in Blacklisted Server'
-                        ),
-                        'description': descript,
-                        'color': int('0xee281f', 16),
-                        'thumbnail': {'url': member.avatar_url}
-                    }]
-                }
-            }
-            try_sending("Discord", send_webhook, webhook)
-            cache[str(member.id)] = snipers[str(member.id)]
-            with open('cache.json', 'w+') as f:
-                json.dump(cache, f, indent=4)
-            print('{} is in a blacklisted server.'.format(member.display_name))
-    elif args.monitor_users and str(member.id) not in args.ignore_ids:
-        if str(member.id) not in snipers:
-            snipers[str(member.id)] = [str(member.guild.id)]
-        elif str(member.guild.id) not in snipers[str(member.id)]:
-            snipers[str(member.id)].append(str(member.guild.id))
-        if str(member.id) in users:
-            descript = '{}\n\n**Server Joined**\n{}\n'.format(
-                member.mention, member.guild.name)
-            if len(snipers[str(member.id)]) > 1:
-                descript += '\n**All Servers**\n```'
-                for guild_id in snipers[str(member.id)]:
-                    descript += '{}\n'.format(guilds[guild_id])
-                descript += '```'
-            descript += '\n{}'.format(
-                datetime.time(datetime.now().replace(microsecond=0)))
-            webhook = {
-                'url': args.webhook_url,
-                'payload': {
-                    'embeds': [{
-                        'title': (
-                            u"\U0001F3F4" + ' User joined Blacklisted Server'
-                        ),
-                        'description': descript,
-                        'color': int('0xee281f', 16),
-                        'thumbnail': {'url': member.avatar_url}
-                    }]
-                }
-            }
-            try_sending("Discord", send_webhook, webhook)
-            cache[str(member.id)] = snipers[str(member.id)]
-            with open('cache.json', 'w+') as f:
-                json.dump(cache, f, indent=4)
-            print('{} joined {}.'.format(
-                member.display_name, member.guild.name))
-
-
-@client.event
-async def on_member_remove(member):
-    if ((args.monitor_users or args.monitor_user_messages) and
-            str(member.guild.id) in args.my_server_ids):
-        if str(member.id) in users:
-            users.remove(str(member.id))
-        if args.monitor_users and str(member.id) in snipers:
-            webhook = {
-                'url': args.webhook_url,
-                'payload': {
-                    'embeds': [{
-                        'title': u"\u274C" + ' User left the building',
-                        'description': '{}\n\n**Id**\n{}\n\n{}'.format(
-                            member, member.id,
-                            datetime.time(datetime.now().replace(
-                                microsecond=0))
-                        ),
-                        'color': int('0xee281f', 16),
-                        'thumbnail': {'url': member.avatar_url}
-                    }]
-                }
-            }
-            try_sending("Discord", send_webhook, webhook)
-            cache.pop(str(member.id))
-            with open('cache.json', 'w+') as f:
-                json.dump(cache, f, indent=4)
-            print('{} has left the building.'.format(member.display_name))
-    elif args.monitor_users and str(member.id) not in args.ignore_ids:
-        if str(member.id) in snipers and len(snipers[str(member.id)]) <= 1:
-            snipers.pop(str(member.id))
-        elif (str(member.id) in snipers and
-              str(member.guild.id) in snipers[str(member.id)]):
-            snipers[str(member.id)].remove(str(member.guild.id))
-        if str(member.id) in users:
-            descript = '{}\n\n**Server left**\n{}\n'.format(
-                member.mention, member.guild.name)
-            if str(member.id) in snipers:
-                descript += '\n**All Servers**\n```'
-                for guild_id in snipers[str(member.id)]:
-                    descript += '{}\n'.format(guilds[guild_id])
-                descript += '```'
-            descript += '\n{}'.format(
-                datetime.time(datetime.now().replace(microsecond=0)))
-            webhook = {
-                'url': args.webhook_url,
-                'payload': {
-                    'embeds': [{
-                        'title': (
-                            u"\u274C" + ' User left Blacklisted Server'
-                        ),
-                        'description': descript,
-                        'color': int('0x71cd40', 16),
-                        'thumbnail': {'url': member.avatar_url}
-                    }]
-                }
-            }
-            try_sending("Discord", send_webhook, webhook)
-            if str(member.id) in snipers:
-                cache[str(member.id)] = snipers[str(member.id)]
-            else:
-                cache.pop(str(member.id))
-            with open('cache.json', 'w+') as f:
-                json.dump(cache, f, indent=4)
-            print('{} left {}.'.format(member.display_name, member.guild.name))
-
-
-@client.event
-async def on_message(message):
-    if ((args.monitor_messages or
-         (args.monitor_user_messages and
-          str(message.author.id) in users)) and
-        message.channel.guild is not None and
-            str(message.guild.id) not in args.my_server_ids):
-        alert = False
-        msg = message.content.replace(', ', ',').replace('- ', '-').split()
-        for word in msg:
-            coor_patter = re.compile(
-                "[-+]?[0-9]*\.?[0-9]*" + "[ \t]*,[ \t]*" +
-                "[-+]?[0-9]*\.?[0-9]*"
-            )
-            if coor_patter.match(word):
-                coords = coor_patter.match(word).group().strip('.').strip(',')
-                if ',' in coords:
-                    try:
-                        lat, lng = map(float, coords.split(","))
-                        for name, gf in geofences.items():
-                            if gf.contains(lat, lng):
-                                alert = True
-                    except ValueError:
-                        print('!!!!!!!!!!!!!!!!!!!!!!!!!!')
-                        print(msg)
-                        print(word)
-                        print(coords)
-                        print('!!!!!!!!!!!!!!!!!!!!!!!!!!')
-        if alert is True:
-            if str(message.author.id) in users:
-                descript = message.author.mention
-            else:
-                descript = '{} | {}'.format(message.author, message.author.id)
-            descript += '\n\n**Server**\n{}\n\n**Message**\n```{}```'.format(
-                message.guild.name, message.content)
-            webhook = {
-                'url': args.webhook_url,
-                'payload': {
-                    'embeds': [{
-                        'title': (
-                            u"\U0001F3F4" +
-                            ' User posted coords in Blacklisted Server'
-                        ),
-                        'description': descript,
-                        'color': int('0xee281f', 16),
-                        'thumbnail': {'url': message.author.avatar_url}
-                    }]
-                }
-            }
-            try_sending("Discord", send_webhook, webhook)
-            print('{} posted coords in Blacklisted Server.'.format(
-                message.author.display_name))
-    elif (args.monitor_users and
-          len(args.admin_role) > 0 and
-          str(message.guild.id) in args.my_server_ids and
-          message.content.lower().startswith('!check ')):
-        for role in message.author.roles:
-            if role.name.lower() in args.admin_role:
-                try:
-                    msg = int(message.content.lower().split()[1])
-                except Exception as e:
-                    webhook = {
-                        'url': args.webhook_url,
-                        'payload': {
-                            'embeds': [{
-                                'description': (
-                                    '{} Not a valid user id.'
-                                ).format(message.author.mention),
-                                'color': int('0xee281f', 16)
-                            }]
-                        }
-                    }
-                    try_sending("Discord", send_webhook, webhook)
-                    print('{} sent an invalid user id.'.format(
-                        message.author.display_name))
-                    break
-                member = discord.utils.get(
-                    client.get_all_members(),
-                    id=msg
-                )
-                if member is None:
-                    webhook = {
-                        'url': args.webhook_url,
-                        'payload': {
-                            'embeds': [{
-                                'description': (
-                                    '{} Cannot find user with id `{}`.'
-                                ).format(message.author.mention, msg),
-                                'color': int('0xee281f', 16)
-                            }]
-                        }
-                    }
-                    try_sending("Discord", send_webhook, webhook)
-                    print('Cannot find user id {}.'.format(msg))
-                elif msg in snipers:
-                    if str(member.id) in users:
-                        descript = '{}\n\n**Servers**\n```'.format(
-                            member.mention)
-                    else:
-                        descript = '{} | {}\n\n**Servers**\n```'.format(
-                            member, member.id)
-                    for guild_id in snipers[str(member.id)]:
-                        descript += '{}\n'.format(guilds[guild_id])
-                    descript += '```\n{}'.format(
-                        datetime.time(datetime.now().replace(microsecond=0)))
-                    webhook = {
-                        'url': args.webhook_url,
-                        'payload': {
-                            'embeds': [{
-                                'title': (
-                                    u"\U0001F3F4" +
-                                    ' User is in Blacklisted Server'
-                                ),
-                                'description': descript,
-                                'color': int('0xee281f', 16),
-                                'thumbnail': {'url': member.avatar_url}
-                            }]
-                        }
-                    }
-                    try_sending("Discord", send_webhook, webhook)
-                    print('{} is in a blacklisted server.'.format(
-                        member.display_name))
-                else:
-                    if str(member.id) in users:
-                        descript = member.mention
-                    else:
-                        descript = '{}\n\n**Id**\n{}'.format(member, member.id)
-                    descript += '\n\n{}'.format(
-                        datetime.time(datetime.now().replace(microsecond=0)))
-                    webhook = {
-                        'url': args.webhook_url,
-                        'payload': {
-                            'embeds': [{
-                                'title': (
-                                    u"\u2705" +
-                                    ' User is in no Blacklisted Servers'
-                                ),
-                                'description': descript,
-                                'color': int('0x71cd40', 16),
-                                'thumbnail': {'url': member.avatar_url}
-                            }]
-                        }
-                    }
-                    try_sending("Discord", send_webhook, webhook)
-                    print('{} is not in a blacklisted server.'.format(
-                        member.display_name))
-
-
-def counter_sniper():
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(client.login(args.bot_token, bot=False))
-    loop.run_until_complete(client.connect())
 
 ###############################################################################
 
 
 if __name__ == '__main__':
-    counter_sniper()
+    log.info('CounterSniper is getting ready')
+    start_server()
