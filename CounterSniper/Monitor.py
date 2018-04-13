@@ -382,6 +382,7 @@ class Spy(discord.Client):
                     ).format(
                         guilds[guild_info[0]], time_str, self.__punish_str
                     ),
+                    'msg': 'warning',
                     'event': 'msg'
                 }
                 await self.__queue.put(payload)
@@ -441,6 +442,7 @@ class Spy(discord.Client):
             ).format(
                 guilds[str(member.guild.id)], time_str, self.__punish_str
             ),
+            'msg': 'warning',
             'event': 'msg'
         }
         await self.__queue.put(payload)
@@ -557,6 +559,7 @@ class Spy(discord.Client):
                     "It appears you have left all blacklisted servers, you "
                     "are all set!  Thank you for your understanding!"
                 ),
+                'msg': 'all-clear',
                 'event': 'msg'
             }
             await self.__queue.put(payload)
@@ -586,9 +589,9 @@ class Spy(discord.Client):
                 my_guild = self.get_guild(int(guild_id))
                 if my_guild is None:
                     continue
-                for member in my_guild.members:
-                    if str(member.id) not in users:
-                        users.append(str(member.id))
+                for my_guild_member in my_guild.members:
+                    if str(my_guild_member.id) not in users:
+                        users.append(str(my_guild_member.id))
             if self.__monitor_users:
                 con = sqlite3.connect('counter_sniper.db')
                 cur = con.cursor()

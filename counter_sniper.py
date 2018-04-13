@@ -37,7 +37,7 @@ entries = []
 
 
 def start_server():
-    logging.getLogger("discord").setLevel(logging.WARNING)
+    logging.getLogger("discord").setLevel(logging.ERROR)
     con = sqlite3.connect('counter_sniper.db')
     cur = con.cursor()
     cur.execute(

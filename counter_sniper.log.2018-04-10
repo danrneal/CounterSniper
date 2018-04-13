@@ -1,7 +1,0 @@
-2018-04-10 00:26:15,518 [    MainProcess][discord.ga][ WARNING] Shard ID None has stopped responding to the gateway. Closing and restarting.
-2018-04-10 00:34:32,803 [    MainProcess][discord.ga][ WARNING] Shard ID None has stopped responding to the gateway. Closing and restarting.
-2018-04-10 00:34:50,306 [    MainProcess][discord.st][ WARNING] VOICE_STATE_UPDATE referencing an unknown member ID: 328271981441056768. Discarding.
-2018-04-10 12:05:14,194 [    MainProcess][discord.st][ WARNING] VOICE_STATE_UPDATE referencing an unknown member ID: 408451267283648523. Discarding.
-2018-04-10 17:07:21,825 [    MainProcess][discord.ga][ WARNING] Unknown event WEBHOOKS_UPDATE.
-2018-04-10 17:07:22,280 [    MainProcess][discord.ga][ WARNING] Unknown event WEBHOOKS_UPDATE.
-2018-04-10 19:57:26,729 [    MainProcess][discord.st][ WARNING] VOICE_STATE_UPDATE referencing an unknown member ID: 265668842703945728. Discarding.

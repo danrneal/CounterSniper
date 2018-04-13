@@ -62,7 +62,8 @@ class Hammer(discord.Client):
             else:
                 self.__next_punishment = member_info[0]
                 log.info("Next punish check in {} seconds".format(
-                    (member_info[0] - datetime.utcnow()).total_seconds()
+                    (member_info[0] -
+                     datetime.utcnow().replace(microsecond=0)).total_seconds()
                 ))
                 break
         con.close()
@@ -111,14 +112,22 @@ class Hammer(discord.Client):
                      payload.get('timer') < self.__next_punishment)):
                     self.__next_punishment = payload['timer']
                     log.info("Next punish check in {} seconds".format(
-                        (payload['timer'] - datetime.utcnow()).total_seconds()
+                        (
+                            payload['timer'] -
+                            datetime.utcnow().replace(microsecond=0)
+                        ).total_seconds()
                     ))
                 member = discord.utils.get(
                     self.get_all_members(),
                     id=payload['member_id']
                 )
-                await member.send(payload['content'])
-                log.info("Sent msg to {}".format(member))
+                try:
+                    await member.send(payload['content'])
+                    log.info("Sent {} msg to {}".format(
+                        payload['msg'], member))
+                except discord.Forbidden:
+                    log.info('Unable to send {} message to {}'.format(
+                        payload['msg'], member))
             elif payload['event']:
                 await self.punish_user()
 

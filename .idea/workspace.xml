@@ -2,10 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4f4a17c2-e966-4ae6-9ea8-99388f948db3" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CounterSniper/Hammer.py" beforeDir="false" afterPath="$PROJECT_DIR$/CounterSniper/Hammer.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CounterSniper/Monitor.py" beforeDir="false" afterPath="$PROJECT_DIR$/CounterSniper/Monitor.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/counter_sniper.db" beforeDir="false" afterPath="$PROJECT_DIR$/counter_sniper.db" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/counter_sniper.log" beforeDir="false" afterPath="$PROJECT_DIR$/counter_sniper.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/counter_sniper.log.2018-04-10" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/counter_sniper.py" beforeDir="false" afterPath="$PROJECT_DIR$/counter_sniper.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -20,11 +22,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="counter_sniper.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="counter_sniper.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/counter_sniper.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1209">
-              <caret line="212" column="37" selection-start-line="212" selection-start-column="37" selection-end-line="212" selection-end-column="37" />
+            <state relative-caret-position="330">
+              <caret line="48" selection-start-line="48" selection-end-line="48" />
               <folding>
                 <element signature="e#44#58#0" expanded="true" />
               </folding>
@@ -35,8 +37,8 @@
       <file leaf-file-name="Monitor.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/CounterSniper/Monitor.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="17">
-              <caret line="623" column="40" selection-start-line="623" selection-start-column="40" selection-end-line="623" selection-end-column="40" />
+            <state relative-caret-position="23">
+              <caret line="583" column="40" selection-start-line="583" selection-start-column="40" selection-end-line="583" selection-end-column="40" />
               <folding>
                 <element signature="e#0#14#0" expanded="true" />
               </folding>
@@ -44,11 +46,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Hammer.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Hammer.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/CounterSniper/Hammer.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="221">
-              <caret line="13" column="37" selection-start-line="13" selection-start-column="37" selection-end-line="13" selection-end-column="37" />
+            <state relative-caret-position="312">
+              <caret line="123" selection-start-line="123" selection-end-line="129" selection-end-column="48" />
               <folding>
                 <element signature="e#0#14#0" expanded="true" />
               </folding>
@@ -79,21 +81,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>remove_g</find>
-      <find>into c</find>
-      <find>add_snip</find>
-      <find>update c</find>
-      <find>update_</find>
-      <find>from c</find>
-      <find>from cac</find>
-      <find>delete from s</find>
-      <find>stat</find>
-      <find>is in a</find>
-      <find>next_pun</find>
-      <find>utils.</find>
-      <find>User is in Blacklisted Server</find>
-      <find>add_member</find>
-      <find>posted</find>
       <find>```</find>
       <find>__ignore</find>
       <find>ignore_</find>
@@ -106,9 +93,24 @@
       <find>payload =</find>
       <find>self.__ne</find>
       <find>guild</find>
-      <find>guild =</find>
       <find>send</find>
       <find>.pop</find>
+      <find>seconds</find>
+      <find>error</find>
+      <find>second</find>
+      <find>remove_member</find>
+      <find>delete</find>
+      <find>erro</find>
+      <find>msg'</find>
+      <find>sent</find>
+      <find>on_</find>
+      <find>message</find>
+      <find>on_</find>
+      <find>before</find>
+      <find>after</find>
+      <find>member =</find>
+      <find>guild =</find>
+      <find>def</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -121,9 +123,9 @@
         <option value="$PROJECT_DIR$/CounterSniper/Spy.py" />
         <option value="$PROJECT_DIR$/.gitlab-ci.yml" />
         <option value="$PROJECT_DIR$/CounterSniper/utils.py" />
-        <option value="$PROJECT_DIR$/CounterSniper/Hammer.py" />
         <option value="$PROJECT_DIR$/counter_sniper.py" />
         <option value="$PROJECT_DIR$/CounterSniper/Monitor.py" />
+        <option value="$PROJECT_DIR$/CounterSniper/Hammer.py" />
       </list>
     </option>
   </component>
@@ -174,7 +176,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="SearchEverywhereHistoryKey" value="&#9;FILE&#9;file://C:/Users/dneal/Google Drive/Dropbox/TallyPokeMap/CounterSniper/counter_sniper.py" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../PokeBot" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../CounterBPM" />
     <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
     <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
   </component>
@@ -502,32 +504,32 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/CounterSniper/Hammer.py">
+    <entry file="file://$PROJECT_DIR$/counter_sniper.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="221">
-          <caret line="13" column="37" selection-start-line="13" selection-start-column="37" selection-end-line="13" selection-end-column="37" />
+        <state relative-caret-position="330">
+          <caret line="48" selection-start-line="48" selection-end-line="48" />
           <folding>
-            <element signature="e#0#14#0" expanded="true" />
+            <element signature="e#44#58#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/CounterSniper/Monitor.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="17">
-          <caret line="623" column="40" selection-start-line="623" selection-start-column="40" selection-end-line="623" selection-end-column="40" />
+        <state relative-caret-position="23">
+          <caret line="583" column="40" selection-start-line="583" selection-start-column="40" selection-end-line="583" selection-end-column="40" />
           <folding>
             <element signature="e#0#14#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/counter_sniper.py">
+    <entry file="file://$PROJECT_DIR$/CounterSniper/Hammer.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1209">
-          <caret line="212" column="37" selection-start-line="212" selection-start-column="37" selection-end-line="212" selection-end-column="37" />
+        <state relative-caret-position="312">
+          <caret line="123" selection-start-line="123" selection-end-line="129" selection-end-column="48" />
           <folding>
-            <element signature="e#44#58#0" expanded="true" />
+            <element signature="e#0#14#0" expanded="true" />
           </folding>
         </state>
       </provider>
