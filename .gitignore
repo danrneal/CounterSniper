@@ -1,6 +1,12 @@
+env
+.idea
+_build
+*.db
+*.ini
+*.log
+*.log.*
 *.pyc
 *.txt
-*.json
-config/*
-!config/config.ini.example
+.DS_Store
+__pycache__
 null

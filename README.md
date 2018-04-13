@@ -4,7 +4,7 @@
 
 A counter-sniper discord bot.
 
-This bot will monitor sniping servers and alert you if one of your users is currently in or joins one.
+This bot will monitor sniping servers and alert you if one of your users is currently in or joins one.  It will also auto-message and punish these users if you want.  It can also monitor if any coords are posted inside geofences specified in a file.
 
 **My current list of sniping servers (DM me if you find more!):**
 

@@ -1120,3 +1120,69 @@ discord.errors.Forbidden: FORBIDDEN (status code: 403): Cannot send messages to 
 2018-04-13 17:45:19,573 [    MainProcess][    Hammer][    INFO] Unable to send warning message to TallyPokeMap#7162
 2018-04-13 17:46:05,765 [    MainProcess][       Spy][    INFO] TallyPokeMap#7162 left Global++ Tweaks.
 2018-04-13 17:46:06,091 [    MainProcess][    Hammer][    INFO] Sent all-clear msg to TallyPokeMap#7162
+2018-04-13 23:56:30,142 [    MainProcess][    Server][    INFO] CounterSniper is getting ready
+2018-04-13 23:56:30,154 [    MainProcess][    Server][    INFO] Geofence Bradfordville added.
+2018-04-13 23:56:30,155 [    MainProcess][    Server][    INFO] Geofence Killearn added.
+2018-04-13 23:56:30,155 [    MainProcess][    Server][    INFO] Geofence North Tallahassee added.
+2018-04-13 23:56:30,155 [    MainProcess][    Server][    INFO] Geofence Northwest Tallahassee added.
+2018-04-13 23:56:30,156 [    MainProcess][    Server][    INFO] Geofence Buck Lake added.
+2018-04-13 23:56:30,156 [    MainProcess][    Server][    INFO] Geofence Southwood added.
+2018-04-13 23:56:30,157 [    MainProcess][    Server][    INFO] Geofence Central Tallahassee added.
+2018-04-13 23:56:30,157 [    MainProcess][    Server][    INFO] Geofence Betton Hills added.
+2018-04-13 23:56:30,157 [    MainProcess][    Server][    INFO] Geofence Hartsfield added.
+2018-04-13 23:56:30,158 [    MainProcess][    Server][    INFO] Geofence Lake Bradford added.
+2018-04-13 23:56:30,158 [    MainProcess][    Server][    INFO] Geofence Governor's Square added.
+2018-04-13 23:56:30,159 [    MainProcess][    Server][    INFO] Geofence West Tallahassee added.
+2018-04-13 23:56:30,159 [    MainProcess][    Server][    INFO] Geofence South Tallahassee added!
+2018-04-13 23:56:32,416 [    MainProcess][    Server][    INFO] Starting the Hammer bot
+2018-04-13 23:56:32,605 [    MainProcess][    Server][    INFO] Starting the Spy bot
+2018-04-13 23:56:37,157 [    MainProcess][    Hammer][    INFO] ----------- Hammer Bot is connected.
+2018-04-13 23:56:59,886 [    MainProcess][       Spy][    INFO] ----------------------------------
+2018-04-13 23:56:59,886 [    MainProcess][       Spy][    INFO] Connected! Ready to counter-snipe.
+2018-04-13 23:56:59,886 [    MainProcess][       Spy][    INFO] User: Bob Lee Swagger#2626
+2018-04-13 23:56:59,887 [    MainProcess][       Spy][    INFO] ID: 433821771360239617
+2018-04-13 23:56:59,887 [    MainProcess][       Spy][    INFO] ----------------------------------
+2018-04-13 23:56:59,887 [    MainProcess][       Spy][    INFO] PokeMurph Platinum
+2018-04-13 23:56:59,913 [    MainProcess][       Spy][    INFO] PokéTrack
+2018-04-13 23:57:00,085 [    MainProcess][       Spy][    INFO] Marketplace/ChargeBack/Fraud
+2018-04-13 23:57:00,092 [    MainProcess][       Spy][    INFO] Hacking District - Your #1 source for all things video game cheating, hacking & botting.
+2018-04-13 23:57:00,492 [    MainProcess][       Spy][    INFO] POGOCommunity
+2018-04-13 23:57:00,505 [    MainProcess][       Spy][    INFO] PokéNoobs
+2018-04-13 23:57:00,526 [    MainProcess][       Spy][    INFO] Pokedex100
+2018-04-13 23:57:01,962 [    MainProcess][       Spy][    INFO] 💯IV Cʟʊɮ
+2018-04-13 23:57:01,995 [    MainProcess][       Spy][    INFO] Global++ Tweaks
+2018-04-13 23:57:03,526 [    MainProcess][       Spy][    INFO] Discord PokeSniper
+2018-04-13 23:57:03,588 [    MainProcess][       Spy][    INFO] Pokopia
+2018-04-13 23:57:03,654 [    MainProcess][       Spy][    INFO] PokeMobBot - a Pokémon Go Bot
+2018-04-13 23:57:03,837 [    MainProcess][       Spy][    INFO] Articuno's Lair
+2018-04-13 23:57:03,874 [    MainProcess][       Spy][    INFO] LoveGoIV100-Community
+2018-04-13 23:57:03,904 [    MainProcess][       Spy][    INFO] NECROBOT2
+2018-04-13 23:57:04,183 [    MainProcess][       Spy][    INFO] Pokesnipers
+2018-04-13 23:57:06,700 [    MainProcess][       Spy][    INFO] PokeSnipers
+2018-04-13 23:57:07,082 [    MainProcess][       Spy][    INFO] UnownBot
+2018-04-13 23:57:07,356 [    MainProcess][       Spy][    INFO] PokeBot.Ninja
+2018-04-13 23:57:08,155 [    MainProcess][       Spy][    INFO] RocketBot
+2018-04-13 23:57:08,288 [    MainProcess][       Spy][    INFO] MrSnorlax Pokémon GO hub!!!
+2018-04-13 23:57:08,291 [    MainProcess][       Spy][    INFO] PokeGO Marketplace
+2018-04-13 23:57:08,309 [    MainProcess][       Spy][    INFO] PokeGoScout
+2018-04-13 23:57:08,322 [    MainProcess][       Spy][    INFO] BPGM
+2018-04-13 23:57:08,371 [    MainProcess][       Spy][    INFO] OuDaPoke.com
+2018-04-13 23:57:08,486 [    MainProcess][       Spy][    INFO] PoGoMasters
+2018-04-13 23:57:08,547 [    MainProcess][       Spy][    INFO] Account Manager
+2018-04-13 23:57:08,561 [    MainProcess][       Spy][    INFO] UnownJay
+2018-04-13 23:57:08,574 [    MainProcess][       Spy][    INFO] Hackemon
+2018-04-13 23:57:08,678 [    MainProcess][       Spy][    INFO] The Trainer Central
+2018-04-13 23:57:08,707 [    MainProcess][       Spy][    INFO] Pokémon Go Center
+2018-04-13 23:57:08,746 [    MainProcess][       Spy][    INFO] ⭐ PokeXperience ⭐
+2018-04-13 23:57:09,894 [    MainProcess][       Spy][    INFO] PoGo
+2018-04-13 23:57:09,938 [    MainProcess][       Spy][    INFO] Sytharix - Pokemon Go
+2018-04-13 23:57:10,078 [    MainProcess][       Spy][    INFO] 🌠Poké Go Club🌠
+2018-04-13 23:57:10,212 [    MainProcess][       Spy][    INFO] PokeXen
+2018-04-13 23:57:10,224 [    MainProcess][       Spy][    INFO] pokemon go explicit
+2018-04-13 23:57:10,239 [    MainProcess][       Spy][    INFO] Catch 'Em All
+2018-04-13 23:57:10,829 [    MainProcess][       Spy][    INFO] Global PoGo
+2018-04-13 23:57:10,999 [    MainProcess][       Spy][    INFO] Go Raiders
+2018-04-13 23:57:11,071 [    MainProcess][       Spy][    INFO] Pokémon Go✔
+2018-04-13 23:57:11,621 [    MainProcess][       Spy][    INFO] Catchem PoGo Bot
+2018-04-13 23:57:12,317 [    MainProcess][       Spy][    INFO] ----------- Spy bot finished setting up
+2018-04-13 23:57:12,331 [    MainProcess][    Hammer][    INFO] Finished punish check

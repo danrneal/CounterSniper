@@ -1,4 +1,4 @@
-configargparse
 asyncio
-requests
+configargparse
 git+https://github.com/Rapptz/discord.py@rewrite
+requests

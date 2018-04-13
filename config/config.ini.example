@@ -1,4 +1,14 @@
-token:					##the token for you discord account
-my_server_ids:			##the id of your server
-webhook_url:			##url of your webhook
-ignore_ids:	 			##user ids of users you'd like to ignore [user_id1, user_id2, ... ]
+spy_token:					##token for your spy account
+hammer_token:				##token for your hammer bot (optional)
+my_server_ids:				##list of your server ids
+webhook_url:				##url for your webhook
+admin_roles:				##list of roles that are allowed to use the !check command
+ignore_ids:					##list of ids for users you the want bot to ignore
+monitor_users:				##set to False if you don't want to be alerted if a user joins a blacklisted server. default: True
+monitor_messages:			##set to False if you don't want to be alerted of messages containing coords from your geofences. default: True
+monitor_user_messages:		##set to True if you only want to be alerted of messages containing coords in your geofences posted only by your users. default: False
+inviter_listener:			##set to False if you do not want to listen for invites for new sniping servers. Invite listening requires a hammer token. default: True
+message_users:				##set to True to send a message to users when they have joined a blacklisted server. Requires a hammer token. default: False
+punishment:					##choose a punishment for joining a blacklisted server.  Options are 'ban' or 'kick'. Requires a hammer token. default: None
+timer:						##amount of time before punishment happens in seconds. default: 900
+geofences:					##file containing geofences. default: geofence.txt
