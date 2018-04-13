@@ -1,6 +1,6 @@
 # CounterSniper
 
-[![python](https://img.shields.io/badge/Python-3.6-blue.svg)]() [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://img.shields.io/gitlab/license/dan.r.neal/countersniper) [![pipeline status](https://gitlab.com/dan.r.neal/CounterSniper/badges/observe_and_report/pipeline.svg)](https://gitlab.com/dan.r.neal/observe_and_report/commits/master) [![Discord](https://img.shields.io/discord/314040044052545538.svg)](https://discordapp.com/channels/314040044052545538/314040595456983040) [![donate](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://paypal.me/dneal12)
+[![python](https://img.shields.io/badge/Python-3.6-blue.svg)]() [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://img.shields.io/gitlab/license/dan.r.neal/countersniper) [![pipeline status](https://gitlab.com/dan.r.neal/CounterSniper/badges/master/pipeline.svg)](https://gitlab.com/dan.r.neal/observe_and_report/commits/master) [![Discord](https://img.shields.io/discord/314040044052545538.svg)](https://discordapp.com/channels/314040044052545538/314040595456983040) [![donate](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://paypal.me/dneal12)
 
 A counter-sniper discord bot.
 
