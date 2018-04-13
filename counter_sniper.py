@@ -104,7 +104,7 @@ def parse_settings(con, cur):
         action='store_false',
         default=True,
         help=(
-            "Set to False if you don't want to be alerted if a user joins " 
+            "Set to False if you don't want to be alerted if a user joins "
             "a blacklisted server. default: True"
         )
     )
@@ -113,7 +113,7 @@ def parse_settings(con, cur):
         action='store_false',
         default=True,
         help=(
-            "Set to False if you don't want to be alerted of messages " 
+            "Set to False if you don't want to be alerted of messages "
             "containing coords from your geofences. default: True"
         )
     )
@@ -122,8 +122,8 @@ def parse_settings(con, cur):
         action='store_true',
         default=False,
         help=(
-            "Set to True if you only want to be alerted of messages " 
-            "containing coords in your geofences posted only by your users." 
+            "Set to True if you only want to be alerted of messages "
+            "containing coords in your geofences posted only by your users."
             "default: False"
         )
     )
