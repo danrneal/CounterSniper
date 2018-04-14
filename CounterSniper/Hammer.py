@@ -90,15 +90,23 @@ class Hammer(discord.Client):
                                     u"\U0001F3F4" + ' Invite Posted in '
                                     'Blacklisted Server'
                                 ),
-                                'description': (
-                                    '{}\n\n**Server**\n{}'
-                                    '\n\n**Posted In**\n{}\n\n{}'.format(
-                                        invite, invite.guild.name,
-                                        payload['posted'],
-                                        datetime.time(datetime.now().replace(
-                                            microsecond=0))
-                                    )
-                                ),
+                                'description': str(invite),
+                                'fields': [
+                                    {
+                                        'name': 'Server',
+                                        'value': invite.guild.name,
+                                        'inline': True
+                                    },
+                                    {
+                                        'name': 'Posted In',
+                                        'value': payload['posted'],
+                                        'inline': True
+                                    }
+                                ],
+                                'footer': {
+                                    'text': str(datetime.now().strftime(
+                                        "%m/%d/%Y at %I:%M %p"))
+                                },
                                 'color': int('0xee281f', 16)
                             }]
                         }

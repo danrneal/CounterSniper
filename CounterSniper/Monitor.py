@@ -197,10 +197,15 @@ class Spy(discord.Client):
                     'title': (
                             u"\u2705" + ' CounterSniper added to a server'
                     ),
-                    'description': '\n**Server**\n{}\n\n{}'.format(
-                        guild,
-                        datetime.time(datetime.now().replace(microsecond=0))
-                    ),
+                    'fields': [{
+                        'name': 'Server',
+                        'value': str(guild),
+                        'inline': True
+                    }],
+                    'footer': {
+                        'text': str(datetime.now().strftime(
+                            "%m/%d/%Y at %I:%M %p"))
+                    },
                     'color': int('0x71cd40', 16),
                     'thumbnail': {'url': guild.icon_url}
                 }]
@@ -259,17 +264,20 @@ class Spy(discord.Client):
                     'title': (
                         u"\u274C" + ' CounterSniper removed from a server'
                     ),
-                    'description': '\n**Server**\n{}\n\n{}'.format(
-                        guild,
-                        datetime.time(datetime.now().replace(microsecond=0))
-                    ),
+                    'fields': [{
+                        'name': 'Server',
+                        'value': str(guild),
+                        'inline': True
+                    }],
+                    'footer': {
+                        'text': str(datetime.now().strftime(
+                            "%m/%d/%Y at %I:%M %p"))
+                    },
                     'color': int('0xee281f', 16),
                     'thumbnail': {'url': guild_icon_url}
                 }]
             }
         }
-        if guild_icon_url is None:
-            webhook['payload']['embeds'][0].pop('thumbnail')
         try_sending("Discord", send_webhook, webhook)
         log.info('CounterSniper was removed from {}.'.format(guild))
 
@@ -341,8 +349,6 @@ class Spy(discord.Client):
         )
         sniper_guilds = cur.fetchall()
         if len(sniper_guilds) > 0:
-            descript = '{} | {}\n{}\n\n**Servers**\n```\n'.format(
-                member, member.id, member.mention)
             if member.joined_at < datetime.utcnow() - timedelta(minutes=5):
                 seconds = max(86400, self.__timer)
                 timer = (
@@ -359,8 +365,9 @@ class Spy(discord.Client):
                 time_str = '{} hours'.format(seconds / 3600)
             else:
                 time_str = '{} minutes'.format(seconds / 60)
+            servers = '```\n'
             for guild_info in sniper_guilds:
-                descript += '{}\n'.format(guilds[guild_info[0]])
+                servers += '{}\n'.format(guilds[guild_info[0]])
                 cur.execute(
                     'INSERT INTO cache '
                     '(member_id, member, guild_id, guild, timer) '
@@ -386,8 +393,7 @@ class Spy(discord.Client):
                     'event': 'msg'
                 }
                 await self.__queue.put(payload)
-            descript += '```\n{}'.format(
-                datetime.time(datetime.now().replace(microsecond=0)))
+            servers += '```'
             webhook = {
                 'url': self.__webhook_url,
                 'payload': {
@@ -395,7 +401,28 @@ class Spy(discord.Client):
                         'title': (
                             u"\U0001F3F4" + ' User is in Blacklisted Server'
                         ),
-                        'description': descript,
+                        'description': str(member),
+                        'fields': [
+                            {
+                                'name': 'User',
+                                'value': member.mention,
+                                'inline': True
+                            },
+                            {
+                                'name': 'Id',
+                                'value': str(member.id),
+                                'inline': True
+                            },
+                            {
+                                'name': 'Servers',
+                                'value': servers,
+                                'inline': False
+                            }
+                        ],
+                        'footer': {
+                            'text': str(datetime.now().strftime(
+                                "%m/%d/%Y at %I:%M %p"))
+                        },
                         'color': int('0xee281f', 16),
                         'thumbnail': {'url': member.avatar_url}
                     }]
@@ -453,15 +480,6 @@ class Spy(discord.Client):
             (str(member.id),)
         )
         sniper_guilds = cur.fetchall()
-        descript = '{} | {}\n{}\n\n**Server Joined**\n{}\n'.format(
-            member, member.id, member.mention, member.guild)
-        if len(sniper_guilds) > 1:
-            descript += '\n**All Servers**\n```\n'
-            for guild_info in sniper_guilds:
-                descript += '{}\n'.format(guilds[guild_info[0]])
-            descript += '```'
-        descript += '\n{}'.format(
-            datetime.time(datetime.now().replace(microsecond=0)))
         webhook = {
             'url': self.__webhook_url,
             'payload': {
@@ -469,12 +487,43 @@ class Spy(discord.Client):
                     'title': (
                         u"\U0001F3F4" + ' User joined Blacklisted Server'
                     ),
-                    'description': descript,
+                    'description': str(member),
+                    'fields': [
+                        {
+                            'name': 'User',
+                            'value': member.mention,
+                            'inline': True
+                        },
+                        {
+                            'name': 'Id',
+                            'value': str(member.id),
+                            'inline': True
+                        },
+                        {
+                            'name': 'Server Joined',
+                            'value': str(member.guild),
+                            'inline': True
+                        }
+                    ],
+                    'footer': {
+                        'text': str(datetime.now().strftime(
+                            "%m/%d/%Y at %I:%M %p"))
+                    },
                     'color': int('0xee281f', 16),
                     'thumbnail': {'url': member.avatar_url}
                 }]
             }
         }
+        if len(sniper_guilds) > 1:
+            servers = '```\n'
+            for guild_info in sniper_guilds:
+                servers += '{}\n'.format(guilds[guild_info[0]])
+            servers += '```'
+            webhook['payload']['embeds'][0]['fields'].append({
+                'name': 'Servers',
+                'value': servers,
+                'inline': False
+            })
         try_sending("Discord", send_webhook, webhook)
         log.info('{} joined {}.'.format(member, member.guild))
 
@@ -518,17 +567,21 @@ class Spy(discord.Client):
             'payload': {
                 'embeds': [{
                     'title': u"\u274C" + ' User left the building',
-                    'description': '{}\n\n**Id**\n{}\n\n{}'.format(
-                        member, member_id,
-                        datetime.time(datetime.now().replace(microsecond=0))
-                    ),
+                    'description': str(member),
+                    'fields': [{
+                        'name': 'Id',
+                        'value': str(member_id),
+                        'inline': True
+                    }],
+                    'footer': {
+                        'text': str(datetime.now().strftime(
+                            "%m/%d/%Y at %I:%M %p"))
+                    },
                     'color': int('0xee281f', 16),
                     'thumbnail': {'url': member_avatar_url}
                 }]
             }
         }
-        if member_avatar_url is None:
-            webhook['payload']['embeds'][0].pop('thumbnail')
         try_sending("Discord", send_webhook, webhook)
         log.info('{} has left the building.'.format(member))
 
@@ -545,13 +598,50 @@ class Spy(discord.Client):
             (str(member.id),)
         )
         sniper_guilds = cur.fetchall()
-        descript = '{} | {}\n{}\n\n**Server left**\n{}\n'.format(
-            member, member.id, member.mention, guild)
+        webhook = {
+            'url': self.__webhook_url,
+            'payload': {
+                'embeds': [{
+                    'title': (
+                            u"\u2705" + ' User left Blacklisted Server'
+                    ),
+                    'description': str(member),
+                    'fields': [
+                        {
+                            'name': 'User',
+                            'value': member.mention,
+                            'inline': True
+                        },
+                        {
+                            'name': 'Id',
+                            'value': str(member.id),
+                            'inline': True
+                        },
+                        {
+                            'name': 'Server Left',
+                            'value': str(guild),
+                            'inline': True
+                        }
+                    ],
+                    'footer': {
+                        'text': str(datetime.now().strftime(
+                            "%m/%d/%Y at %I:%M %p"))
+                    },
+                    'color': int('0x71cd40', 16),
+                    'thumbnail': {'url': member.avatar_url}
+                }]
+            }
+        }
         if len(sniper_guilds) > 0:
-            descript += '\n**All Servers**\n```\n'
+            servers = '```\n'
             for guild_info in sniper_guilds:
-                descript += '{}\n'.format(guilds[guild_info[0]])
-            descript += '```'
+                servers += '{}\n'.format(guilds[guild_info[0]])
+            servers += '```'
+            webhook['payload']['embeds'][0]['fields'].append({
+                'name': 'Servers',
+                'value': servers,
+                'inline': False
+            })
         else:
             payload = {
                 'member_id': member.id,
@@ -563,21 +653,6 @@ class Spy(discord.Client):
                 'event': 'msg'
             }
             await self.__queue.put(payload)
-        descript += '\n{}'.format(
-            datetime.time(datetime.now().replace(microsecond=0)))
-        webhook = {
-            'url': self.__webhook_url,
-            'payload': {
-                'embeds': [{
-                    'title': (
-                            u"\u2705" + ' User left Blacklisted Server'
-                    ),
-                    'description': descript,
-                    'color': int('0x71cd40', 16),
-                    'thumbnail': {'url': member.avatar_url}
-                }]
-            }
-        }
         try_sending("Discord", send_webhook, webhook)
         log.info('{} left {}.'.format(member, guild))
 
@@ -647,17 +722,6 @@ class Spy(discord.Client):
                     except ValueError:
                         pass
                 if alert:
-                    if str(message.author.id) in users:
-                        descript = message.author.mention
-                    else:
-                        descript = '{} | {}'.format(
-                            message.author, message.author.id)
-                    descript += ((
-                        '\n\n**Server**\n{}\n\n**Message**\n```\n{}\n```\n{}'
-                    ).format(
-                        message.guild, message.content,
-                        datetime.time(datetime.now().replace(microsecond=0))
-                    ))
                     webhook = {
                         'url': self.__webhook_url,
                         'payload': {
@@ -666,12 +730,40 @@ class Spy(discord.Client):
                                     u"\U0001F3F4" +
                                     ' User posted coords in Blacklisted Server'
                                 ),
-                                'description': descript,
+                                'description': str(message.author),
+                                'fields': [
+                                    {
+                                        'name': 'Id',
+                                        'value': str(message.author.id),
+                                        'inline': True
+                                    },
+                                    {
+                                        'name': 'Server',
+                                        'value': str(message.guild),
+                                        'inline': True
+                                    },
+                                    {
+                                        'name': 'Message',
+                                        'value': '```\n{}\n```'.format(
+                                            message.content),
+                                        'inline': False
+                                    }
+                                ],
+                                'footer': {
+                                    'text': str(datetime.now().strftime(
+                                        "%m/%d/%Y at %I:%M %p"))
+                                },
                                 'color': int('0xee281f', 16),
                                 'thumbnail': {'url': message.author.avatar_url}
                             }]
                         }
                     }
+                    if str(message.author.id) in users:
+                        webhook['payload']['embeds'][0]['fields'].insert(0, {
+                            'name': 'User',
+                            'value': message.author.mention,
+                            'inline': True
+                        })
                     try_sending("Discord", send_webhook, webhook)
                     log.info('{} posted coords in Blacklisted Server.'.format(
                         message.author))
@@ -722,7 +814,7 @@ class Spy(discord.Client):
             con = sqlite3.connect('counter_sniper.db')
             cur = con.cursor()
             cur.execute(
-                'SELECT guild_id, guild '
+                'SELECT guild_id, guild, member '
                 'FROM snipers '
                 'WHERE member_id = ?',
                 (str(member_id),)
@@ -744,16 +836,16 @@ class Spy(discord.Client):
                 try_sending("Discord", send_webhook, webhook)
                 log.info('Cannot find user id {}.'.format(member_id))
             elif len(sniper_guilds) > 0:
-                descript = '{} | {}'.format(member, member_id)
-                member_avatar_url = None
-                if member is not None:
-                    descript += '\n{}'.format(member.mention)
-                    member_avatar_url = member.avatar_url
-                descript += '\n\n**Servers**\n```\n'
+                servers = '```\n'
                 for guild_info in sniper_guilds:
-                    descript += '{}\n'.format(guild_info[1])
-                descript += '```\n{}'.format(
-                    datetime.time(datetime.now().replace(microsecond=0)))
+                    servers += '{}\n'.format(guild_info[1])
+                servers += '```'
+                if member is not None:
+                    member_name = str(member)
+                    member_avatar_url = member.avatar_url
+                else:
+                    member_name = sniper_guilds[0][2]
+                    member_avatar_url = None
                 webhook = {
                     'url': self.__webhook_url,
                     'payload': {
@@ -762,14 +854,34 @@ class Spy(discord.Client):
                                 u"\U0001F3F4" +
                                 ' User is in Blacklisted Server'
                             ),
-                            'description': descript,
+                            'description': member_name,
+                            'fields': [
+                                {
+                                    'name': 'Id',
+                                    'value': str(member_id),
+                                    'inline': True
+                                },
+                                {
+                                    'name': 'Servers',
+                                    'value': servers,
+                                    'inline': False
+                                }
+                            ],
+                            'footer': {
+                                'text': str(datetime.now().strftime(
+                                    "%m/%d/%Y at %I:%M %p"))
+                            },
                             'color': int('0xee281f', 16),
                             'thumbnail': {'url': member_avatar_url}
                         }]
                     }
                 }
-                if member_avatar_url is None:
-                    webhook['payload']['embeds'][0].pop('thumbnail')
+                if member is not None:
+                    webhook['payload']['embeds'][0]['fields'].insert(0, {
+                        'name': 'User',
+                        'value': member.mention,
+                        'inline': True
+                    })
                 try_sending("Discord", send_webhook, webhook)
                 log.info('{} is in a blacklisted server.'.format(member))
             else:
@@ -781,11 +893,23 @@ class Spy(discord.Client):
                                 u"\u2705" +
                                 ' User is in no Blacklisted Servers'
                             ),
-                            'description': '{}\n{}\n\n**Id**\n{}\n\n{}'.format(
-                                member, member.mention, member.id,
-                                datetime.time(datetime.now().replace(
-                                    microsecond=0))
-                            ),
+                            'description': str(member),
+                            'fields': [
+                                {
+                                    'name': 'User',
+                                    'value': member.mention,
+                                    'inline': True
+                                },
+                                {
+                                    'name': 'Id',
+                                    'value': str(member.id),
+                                    'inline': True
+                                }
+                            ],
+                            'footer': {
+                                'text': str(datetime.now().strftime(
+                                    "%m/%d/%Y at %I:%M %p"))
+                            },
                             'color': int('0x71cd40', 16),
                             'thumbnail': {'url': member.avatar_url}
                         }]
