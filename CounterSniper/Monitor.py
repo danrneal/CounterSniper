@@ -48,10 +48,6 @@ class Spy(discord.Client):
             guilds[str(guild.id)] = str(guild)
             if ((self.__monitor_users or self.__monitor_user_messages) and
                     str(guild.id) in self.__my_server_ids):
-                for role in guild.roles:
-                    if role.name.lower() in self.__admin_roles:
-                        self.__admin_roles.remove(role.name.lower())
-                        self.__admin_roles.append(role)
                 for member in guild.members:
                     if str(member.id) not in users:
                         users.append(str(member.id))
@@ -294,9 +290,9 @@ class Spy(discord.Client):
                 my_guild = self.get_guild(int(guild_id))
                 if my_guild is None:
                     continue
-                for member in my_guild.members:
-                    if str(member.id) not in users:
-                        users.append(str(member.id))
+                for my_guild_member in my_guild.members:
+                    if str(my_guild_member.id) not in users:
+                        users.append(str(my_guild_member.id))
             for member in guild.members:
                 if str(member.id) not in users:
                     self.remove_member(
@@ -716,7 +712,7 @@ class Spy(discord.Client):
                     coords = match.group(0)
                     try:
                         lat, lng = map(float, coords.split(","))
-                        for name, gf in self.__geofences.items():
+                        for gf in self.__geofences:
                             if gf.contains(lat, lng):
                                 alert = True
                     except ValueError:
@@ -783,8 +779,19 @@ class Spy(discord.Client):
                 len(self.__admin_roles) > 0 and
                 message.guild is not None and
                 str(message.guild.id) in self.__my_server_ids and
-                message.content.lower().startswith('!check ') and
-                not set(self.__admin_roles).isdisjoint(message.author.roles)):
+                message.content.lower().startswith('!check ')):
+            admin = False
+            for role_name in self.__admin_roles:
+                admin_role = discord.utils.get(
+                    message.guild.roles,
+                    name=role_name
+                )
+                if (admin_role is not None and
+                        admin_role in message.author.roles):
+                    admin = True
+                    break
+            if not admin:
+                return
             if len(message.mentions) == 1:
                 member = message.mentions[0]
                 member_id = member.id

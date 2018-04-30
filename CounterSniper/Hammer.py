@@ -10,12 +10,8 @@ log = logging.getLogger('Hammer')
 
 class Hammer(discord.Client):
 
-    def __init__(self, my_server_ids, message_users, monitor_users, punishment,
-                 webhook_url, queue):
+    def __init__(self, punishment, webhook_url, queue):
         super(Hammer, self).__init__()
-        self.__my_server_ids = my_server_ids
-        self.__message_users = message_users
-        self.__monitor_users = monitor_users
         self.__punishment = punishment
         self.__webhook_url = webhook_url
         self.__queue = queue

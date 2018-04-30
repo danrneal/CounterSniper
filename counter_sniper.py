@@ -8,7 +8,7 @@ import os
 import re
 import sqlite3
 import sys
-from collections import namedtuple, OrderedDict
+from collections import namedtuple
 from CounterSniper.Hammer import Hammer
 from CounterSniper.Monitor import Spy
 from CounterSniper.utils import get_path, LoggerWriter
@@ -16,7 +16,7 @@ from CounterSniper.utils import get_path, LoggerWriter
 filehandler = logging.handlers.TimedRotatingFileHandler(
     'counter_sniper.log',
     when='midnight',
-    backupCount=2,
+    backupCount=6,
     encoding='utf-8'
 )
 consolehandler = logging.StreamHandler()
@@ -194,9 +194,6 @@ def parse_settings(con, cur):
             args.message_users or
             args.punishment is not None):
         h = Hammer(
-            my_server_ids=args.my_server_ids,
-            message_users=args.message_users,
-            monitor_users=args.monitor_users,
             punishment=args.punishment,
             webhook_url=args.webhook_url,
             queue=queue
@@ -234,7 +231,7 @@ def parse_settings(con, cur):
 
 def load_geofence_file(file_path):
     try:
-        geofences = OrderedDict()
+        geofences = []
         name_pattern = re.compile("(?<=\[)([^]]+)(?=\])")
         coor_patter = re.compile(
             "[-+]?[0-9]*\.?[0-9]*" + "[ \t]*,[ \t]*" + "[-+]?[0-9]*\.?[0-9]*")
@@ -247,7 +244,7 @@ def load_geofence_file(file_path):
             match_name = name_pattern.search(line)
             if match_name:
                 if len(points) > 0:
-                    geofences[name] = Geofence(name, points)
+                    geofences.append(Geofence(points))
                     log.info("Geofence {} added.".format(name))
                     points = []
                 name = match_name.group(0)
@@ -260,7 +257,7 @@ def load_geofence_file(file_path):
                 ).format(line))
                 log.info("All lines should be either '[name]' or 'lat,lng'.")
                 sys.exit(1)
-        geofences[name] = Geofence(name, points)
+        geofences.append(Geofence(points))
         log.info("Geofence {} added!".format(name))
         return geofences
     except IOError:
@@ -277,8 +274,7 @@ def load_geofence_file(file_path):
 
 class Geofence(object):
 
-    def __init__(self, name, points):
-        self.__name = name
+    def __init__(self, points):
         self.__points = points
         self.__min_x = points[0][0]
         self.__max_x = points[0][0]
@@ -310,9 +306,6 @@ class Geofence(object):
                     inside = not inside
             p1x, p1y = p2x, p2y
         return inside
-
-    def get_name(self):
-        return self.__name
 
 
 async def check_close(entry_list):

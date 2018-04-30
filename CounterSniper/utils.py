@@ -44,7 +44,6 @@ class LoggerWriter:
 
     def __init__(self, level):
         self.level = level
-        self.linebuf = ''
 
     def write(self, message):
         for line in message.rstrip().splitlines():
