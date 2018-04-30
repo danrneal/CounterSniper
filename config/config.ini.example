@@ -2,7 +2,7 @@ spy_token:					##token for your spy account
 hammer_token:				##token for your hammer bot (optional)
 my_server_ids:				##list of your server ids
 webhook_url:				##url for your webhook
-admin_roles:				##list of roles that are allowed to use the !check command
+admin_role_names:			##list of names of roles that are allowed to use the !check command
 ignore_ids:					##list of ids for users you the want bot to ignore
 monitor_users:				##set to False if you don't want to be alerted if a user joins a blacklisted server. default: True
 monitor_messages:			##set to False if you don't want to be alerted of messages containing coords from your geofences. default: True

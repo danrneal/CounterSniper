@@ -86,11 +86,11 @@ def parse_settings(con, cur):
         required=True
     )
     parser.add_argument(
-        '-ar', '--admin_roles',
+        '-ar', '--admin_role_names',
         type=str.lower,
         action='append',
         default=[],
-        help='Admin role(s)'
+        help='Name of your admin role(s)'
     )
     parser.add_argument(
         '-iid', '--ignore_ids',
@@ -207,7 +207,7 @@ def parse_settings(con, cur):
         my_server_ids=args.my_server_ids,
         webhook_url=args.webhook_url,
         ignore_ids=args.ignore_ids,
-        admin_roles=args.admin_roles,
+        admin_role_names=args.admin_role_names,
         monitor_users=args.monitor_users,
         monitor_messages=args.monitor_messages,
         monitor_user_messages=args.monitor_user_messages,

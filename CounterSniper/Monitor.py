@@ -13,14 +13,15 @@ users = []
 
 class Spy(discord.Client):
 
-    def __init__(self, my_server_ids, webhook_url, ignore_ids, admin_roles,
-                 monitor_users, monitor_messages, monitor_user_messages,
-                 invite_listener, punishment, timer, geofences, queue):
+    def __init__(self, my_server_ids, webhook_url, ignore_ids,
+                 admin_role_names, monitor_users, monitor_messages,
+                 monitor_user_messages, invite_listener, punishment, timer,
+                 geofences, queue):
         super(Spy, self).__init__()
         self.__my_server_ids = my_server_ids
         self.__webhook_url = webhook_url
         self.__ignore_ids = ignore_ids
-        self.__admin_roles = admin_roles
+        self.__admin_role_names = admin_role_names
         self.__monitor_users = monitor_users
         self.__monitor_messages = monitor_messages
         self.__monitor_user_messages = monitor_user_messages
@@ -776,12 +777,12 @@ class Spy(discord.Client):
                     }
                     await self.__queue.put(payload)
         elif (self.__monitor_users and
-                len(self.__admin_roles) > 0 and
+                len(self.__admin_role_names) > 0 and
                 message.guild is not None and
                 str(message.guild.id) in self.__my_server_ids and
                 message.content.lower().startswith('!check ')):
             admin = False
-            for role_name in self.__admin_roles:
+            for role_name in self.__admin_role_names:
                 admin_role = discord.utils.get(
                     message.guild.roles,
                     name=role_name
